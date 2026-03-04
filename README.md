@@ -1,229 +1,362 @@
-# Kitchen Quality System (KQS)
+<div align="center">
 
-Sistema profesional SaaS para el control de calidad de productos cocinados en restaurantes.
+# 🍳 Kitchen Quality System (KQS)
 
-## 🚀 Características Principales
+**Sistema Profesional SaaS para Control de Calidad en Cocinas Comerciales**
 
-### Multi-empresa y Multi-sucursal
+[![Next.js](https://img.shields.io/badge/Next.js%2016-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript%205-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Prisma](https://img.shields.io/badge/Prisma%206-2D3748?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS%204-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+
+[Demo](#-demo) • [Características](#-características) • [Instalación](#-instalación) • [Documentación](#-documentación)
+
+</div>
+
+---
+
+## 📖 Descripción
+
+**Kitchen Quality System (KQS)** es una aplicación web profesional diseñada para la gestión integral del control de calidad en cocinas comerciales y restaurantes. Permite evaluar platos, gestionar incidencias, y mantener estándares de calidad de manera eficiente.
+
+### 🎯 Problema que Resuelve
+
+- **Falta de estandarización** en evaluaciones de calidad
+- **Pérdida de información** en procesos manuales
+- **Dificultad para rastrear** problemas recurrentes
+- **Ausencia de métricas** para toma de decisiones
+
+### ✅ Solución
+
+KQS centraliza y automatiza el control de calidad con:
+- Evaluaciones estandarizadas por plato
+- Alertas automáticas para problemas recurrentes
+- Dashboards en tiempo real por rol
+- Trazabilidad completa de auditoría
+
+---
+
+## ✨ Características
+
+### 🏢 Multi-empresa y Multi-sucursal
 - Arquitectura SaaS escalable
 - Aislamiento de datos por empresa
 - Gestión de múltiples sucursales
 
-### Sistema de Roles
-- **Super Admin**: Control global del sistema
-- **Company Admin**: Administración de empresa
-- **Branch Manager**: Gestión de sucursal
-- **Supervisor**: Evaluación de calidad
-- **Auditor**: Consulta y auditoría
+### 👥 Sistema de Roles y Permisos
+| Rol | Descripción |
+|-----|-------------|
+| 🔴 **Super Admin** | Control global del sistema, gestión de empresas |
+| 🟠 **Company Admin** | Administración de empresa y sucursales |
+| 🟡 **Branch Manager** | Gestión de sucursal y personal |
+| 🟢 **Supervisor** | Evaluación de calidad y reportes |
+| 🔵 **Auditor** | Consulta y auditoría de datos |
 
-### Gestión de Platos
-- CRUD completo de platos
-- Categorización
-- Configuración de tiempo de preparación
+### 🍽️ Gestión de Platos
+- CRUD completo con categorización
 - Checklists personalizados por plato
+- Plantillas de criterios reutilizables
+- Tiempo de preparación configurables
 
-### Control de Calidad
-- Evaluación con checklists configurables
-- Tipos de criterios: Puntuación (1-5), Booleano, Numérico, Texto
-- Cálculo automático de score
-- Estados: Aprobado / Rechazado / Pendiente de revisión
+### 📋 Control de Calidad
+- **Tipos de criterios**:
+  - Puntuación (1-5)
+  - Sí/No (Booleano)
+  - Numérico (rangos personalizados)
+  - Texto (comentarios)
+- Cálculo automático de score ponderado
+- Estados: Aprobado / Rechazado / Pendiente
 
-### Sistema de Incidencias
+### 🚨 Sistema de Incidencias
 - Registro de problemas de calidad
 - Seguimiento de acciones correctivas
-- Estados: Pendiente, En progreso, Resuelto, Cerrado
-- Severidad: Baja, Media, Alta, Crítica
+- Niveles de severidad: Baja, Media, Alta, Crítica
+- Estados: Pendiente → En Progreso → Resuelto → Cerrado
 
-### Alertas Automáticas
-- Fallos repetidos
-- Tiempo excesivo
-- Bajo puntaje promedio
+### 🔔 Alertas Automáticas
+- Detección de fallos repetidos
+- Alertas por tiempo excesivo
+- Notificaciones de bajo puntaje
 - Incidentes críticos
 
-### Dashboard Gerencial
-- KPIs en tiempo real
-- % de aprobación
-- Tiempo promedio de salida
-- Platos con más incidencias
-- Rendimiento por sucursal
-- Tendencias diarias
+### 📊 Dashboards Inteligentes
+Dashboards personalizados según el rol del usuario:
 
-### Auditoría Completa
+| Dashboard | Contenido |
+|-----------|-----------|
+| **Super Admin** | Métricas globales, empresas, usuarios, actividad |
+| **Company Admin** | Calidad por sucursal, ranking, tendencias |
+| **Branch Manager** | KPIs de sucursal, personal, comparativas |
+| **Supervisor** | Metas diarias, racha, evaluaciones propias |
+| **Auditor** | Tendencias, incidentes, reportes |
+
+### 📝 Auditoría Completa
 - Registro de todos los cambios
-- Historial de acciones
+- Historial de acciones por usuario
 - Trazabilidad completa
+
+---
 
 ## 🛠️ Stack Tecnológico
 
-- **Framework**: Next.js 16 (App Router)
-- **Lenguaje**: TypeScript 5
-- **Base de datos**: SQLite con Prisma ORM
-- **UI**: Tailwind CSS 4 + shadcn/ui
-- **Estado**: Zustand
-- **Gráficos**: Recharts
-- **Validación**: Zod
-- **Autenticación**: bcrypt para hashing de contraseñas
+| Tecnología | Versión | Propósito |
+|------------|---------|-----------|
+| [Next.js](https://nextjs.org/) | 16 | Framework React SSR |
+| [TypeScript](https://www.typescriptlang.org/) | 5 | Tipado estático |
+| [Prisma](https://www.prisma.io/) | 6 | ORM y migraciones |
+| [SQLite](https://www.sqlite.org/) | - | Base de datos |
+| [Tailwind CSS](https://tailwindcss.com/) | 4 | Estilos utilitarios |
+| [shadcn/ui](https://ui.shadcn.com/) | - | Componentes UI |
+| [Zustand](https://zustand-demo.pmnd.rs/) | 5 | Estado global |
+| [Recharts](https://recharts.org/) | 2 | Gráficos |
+| [Zod](https://zod.dev/) | 4 | Validación |
+
+---
 
 ## 📁 Estructura del Proyecto
 
 ```
-src/
-├── app/
-│   ├── api/
-│   │   ├── auth/          # Autenticación
-│   │   ├── companies/     # Gestión de empresas
-│   │   ├── branches/      # Gestión de sucursales
-│   │   ├── users/         # Gestión de usuarios
-│   │   ├── dishes/        # Gestión de platos
-│   │   ├── categories/    # Categorías
-│   │   ├── checklists/    # Checklists de calidad
-│   │   ├── quality-reports/ # Reportes de calidad
-│   │   ├── incidents/     # Incidencias
-│   │   ├── alerts/        # Alertas
-│   │   ├── dashboard/     # KPIs del dashboard
-│   │   └── audit/         # Logs de auditoría
-│   ├── layout.tsx
-│   └── page.tsx
-├── components/
-│   ├── auth/              # Componentes de autenticación
-│   ├── layout/            # Layout principal
-│   ├── views/             # Vistas de la aplicación
-│   └── ui/                # Componentes shadcn/ui
-├── lib/
-│   ├── api.ts             # Cliente API
-│   ├── auth.ts            # Utilidades de autenticación
-│   ├── audit.ts           # Sistema de auditoría
-│   ├── api-response.ts    # Helpers de respuesta
-│   └── db.ts              # Cliente Prisma
-├── store/
-│   └── auth-store.ts      # Estado de autenticación
-└── types/
-    └── index.ts           # Tipos TypeScript
-
-prisma/
-└── schema.prisma          # Esquema de base de datos
+kqs-kitchen-quality-system/
+├── 📁 prisma/
+│   ├── schema.prisma       # Esquema de base de datos
+│   └── seed.ts             # Datos de demostración
+├── 📁 src/
+│   ├── 📁 app/
+│   │   ├── 📁 api/         # API Routes (REST)
+│   │   │   ├── auth/       # Autenticación
+│   │   │   ├── companies/  # Empresas
+│   │   │   ├── branches/   # Sucursales
+│   │   │   ├── users/      # Usuarios
+│   │   │   ├── dishes/     # Platos
+│   │   │   ├── categories/ # Categorías
+│   │   │   ├── checklists/ # Criterios de calidad
+│   │   │   ├── incidents/  # Incidencias
+│   │   │   ├── alerts/     # Alertas
+│   │   │   ├── dashboard/  # KPIs por rol
+│   │   │   └── audit/      # Logs de auditoría
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── 📁 components/
+│   │   ├── dashboards/     # Dashboards por rol
+│   │   ├── layout/         # Layout principal
+│   │   ├── views/          # Vistas de la app
+│   │   └── ui/             # Componentes shadcn/ui
+│   ├── 📁 lib/
+│   │   ├── api.ts          # Cliente API
+│   │   ├── auth.ts         # Utilidades auth
+│   │   ├── db.ts           # Cliente Prisma
+│   │   └── audit.ts        # Sistema auditoría
+│   ├── 📁 store/           # Estado global (Zustand)
+│   └── 📁 types/           # Tipos TypeScript
+├── package.json
+├── tailwind.config.ts
+└── tsconfig.json
 ```
 
-## 🗄️ Modelo de Datos
+---
 
-### Entidades Principales
-1. **Company** - Empresas/Organizaciones
-2. **Branch** - Sucursales/Locaciones
-3. **User** - Usuarios con roles
-4. **Category** - Categorías de platos
-5. **Dish** - Platos del menú
-6. **QualityChecklistItem** - Criterios de evaluación
-7. **QualityReport** - Reportes de calidad
-8. **QualityReportItem** - Respuestas a criterios
-9. **Incident** - Incidencias
-10. **Alert** - Alertas automáticas
-11. **AuditLog** - Registro de auditoría
-12. **Setting** - Configuración del sistema
+## 🚀 Instalación
 
-## 🚀 Inicio Rápido
+### Prerrequisitos
 
-### 1. Instalar dependencias
-```bash
-bun install
-```
+- [Node.js 18+](https://nodejs.org/) o [Bun](https://bun.sh/)
+- [Git](https://git-scm.com/)
 
-### 2. Configurar base de datos
-```bash
-bun run db:push
-```
+### Pasos de Instalación
 
-### 3. Sembrar datos de demostración
-Visita `/api/seed` en tu navegador o ejecuta:
-```bash
-curl http://localhost:3000/api/seed
-```
+1. **Clonar el repositorio**
+   ```bash
+   git clone https://github.com/tu-usuario/kqs-kitchen-quality-system.git
+   cd kqs-kitchen-quality-system
+   ```
 
-### 4. Iniciar servidor de desarrollo
-```bash
-bun run dev
-```
+2. **Instalar dependencias**
+   ```bash
+   bun install
+   # o
+   npm install
+   ```
+
+3. **Configurar base de datos**
+   ```bash
+   bun run db:push
+   # o
+   npm run db:push
+   ```
+
+4. **Cargar datos de demostración**
+   ```bash
+   bun run db:seed
+   # o visitar /api/seed en el navegador
+   ```
+
+5. **Iniciar servidor de desarrollo**
+   ```bash
+   bun run dev
+   # o
+   npm run dev
+   ```
+
+6. **Abrir en el navegador**
+   ```
+   http://localhost:3000
+   ```
+
+---
 
 ## 👤 Cuentas de Demostración
 
 | Rol | Email | Contraseña |
 |-----|-------|------------|
-| Super Admin | admin@kqs.com | admin123 |
-| Company Admin | company@kqs.com | company123 |
-| Branch Manager | manager@kqs.com | manager123 |
-| Supervisor | supervisor@kqs.com | super123 |
+| 🔴 Super Admin | `admin@kqs.com` | `admin123` |
+| 🟠 Company Admin | `company@kqs.com` | `company123` |
+| 🟡 Branch Manager | `manager@kqs.com` | `manager123` |
+| 🟢 Supervisor | `supervisor@kqs.com` | `super123` |
+| 🔵 Auditor | `auditor@kqs.com` | `auditor123` |
+
+---
 
 ## 📊 API Endpoints
 
 ### Autenticación
-- `POST /api/auth/login` - Iniciar sesión
-- `POST /api/auth/logout` - Cerrar sesión
-- `GET /api/auth/me` - Usuario actual
+```
+POST   /api/auth/login      # Iniciar sesión
+POST   /api/auth/logout     # Cerrar sesión
+GET    /api/auth/me         # Usuario actual
+```
 
-### Empresas (Super Admin)
-- `GET /api/companies` - Listar empresas
-- `POST /api/companies` - Crear empresa
-- `GET /api/companies/[id]` - Obtener empresa
-- `PUT /api/companies/[id]` - Actualizar empresa
-- `DELETE /api/companies/[id]` - Eliminar empresa
+### Recursos Principales
+```
+GET    /api/companies       # Listar empresas
+POST   /api/companies       # Crear empresa
+GET    /api/companies/:id   # Obtener empresa
+PUT    /api/companies/:id   # Actualizar empresa
+DELETE /api/companies/:id   # Eliminar empresa
+```
 
-### Sucursales
-- `GET /api/branches` - Listar sucursales
-- `POST /api/branches` - Crear sucursal
-- `GET /api/branches/[id]` - Obtener sucursal
-- `PUT /api/branches/[id]` - Actualizar sucursal
-- `DELETE /api/branches/[id]` - Eliminar sucursal
+```
+GET    /api/branches        # Listar sucursales
+POST   /api/branches        # Crear sucursal
+GET    /api/branches/:id    # Obtener sucursal
+PUT    /api/branches/:id    # Actualizar sucursal
+DELETE /api/branches/:id    # Eliminar sucursal
+```
 
-### Usuarios
-- `GET /api/users` - Listar usuarios
-- `POST /api/users` - Crear usuario
-- `GET /api/users/[id]` - Obtener usuario
-- `PUT /api/users/[id]` - Actualizar usuario
-- `DELETE /api/users/[id]` - Eliminar usuario
+```
+GET    /api/users           # Listar usuarios
+POST   /api/users           # Crear usuario
+GET    /api/users/:id       # Obtener usuario
+PUT    /api/users/:id       # Actualizar usuario
+DELETE /api/users/:id       # Eliminar usuario
+```
 
-### Platos
-- `GET /api/dishes` - Listar platos
-- `POST /api/dishes` - Crear plato
-- `GET /api/dishes/[id]` - Obtener plato
-- `PUT /api/dishes/[id]` - Actualizar plato
-- `DELETE /api/dishes/[id]` - Eliminar plato
+```
+GET    /api/dishes          # Listar platos
+POST   /api/dishes          # Crear plato
+GET    /api/dishes/:id      # Obtener plato
+PUT    /api/dishes/:id      # Actualizar plato
+DELETE /api/dishes/:id      # Eliminar plato
+```
 
-### Categorías
-- `GET /api/categories` - Listar categorías
-- `POST /api/categories` - Crear categoría
-- `GET /api/categories/[id]` - Obtener categoría
-- `PUT /api/categories/[id]` - Actualizar categoría
-- `DELETE /api/categories/[id]` - Eliminar categoría
+```
+GET    /api/incidents       # Listar incidencias
+POST   /api/incidents       # Crear incidencia
+GET    /api/incidents/:id   # Obtener incidencia
+PUT    /api/incidents/:id   # Actualizar incidencia
+DELETE /api/incidents/:id   # Eliminar incidencia
+```
 
-### Checklists
-- `GET /api/checklists` - Listar items de checklist
-- `POST /api/checklists` - Crear item
-- `GET /api/checklists/[id]` - Obtener item
-- `PUT /api/checklists/[id]` - Actualizar item
-- `DELETE /api/checklists/[id]` - Eliminar item
+### Dashboards por Rol
+```
+GET    /api/dashboard/super-admin     # Dashboard Super Admin
+GET    /api/dashboard/company-admin   # Dashboard Company Admin
+GET    /api/dashboard/branch-manager  # Dashboard Branch Manager
+GET    /api/dashboard/supervisor      # Dashboard Supervisor
+GET    /api/dashboard/auditor         # Dashboard Auditor
+```
 
-### Reportes de Calidad
-- `GET /api/quality-reports` - Listar reportes
-- `POST /api/quality-reports` - Crear reporte
-- `GET /api/quality-reports/[id]` - Obtener reporte
+---
 
-### Incidencias
-- `GET /api/incidents` - Listar incidencias
-- `POST /api/incidents` - Crear incidencia
-- `GET /api/incidents/[id]` - Obtener incidencia
-- `PUT /api/incidents/[id]` - Actualizar incidencia
-- `DELETE /api/incidents/[id]` - Eliminar incidencia
+## 🗄️ Modelo de Datos
 
-### Alertas
-- `GET /api/alerts` - Listar alertas
-- `GET /api/alerts/[id]` - Obtener alerta
-- `PUT /api/alerts/[id]` - Reconocer/Cerrar alerta
+```mermaid
+erDiagram
+    Company ||--o{ Branch : "tiene"
+    Company ||--o{ User : "tiene"
+    Company ||--o{ Category : "tiene"
+    Company ||--o{ Dish : "tiene"
+    
+    Branch ||--o{ User : "tiene"
+    Branch ||--o{ QualityReport : "genera"
+    Branch ||--o{ Incident : "reporta"
+    
+    User ||--o{ QualityReport : "evalua"
+    
+    Category ||--o{ Dish : "contiene"
+    
+    Dish ||--o{ QualityChecklistItem : "tiene"
+    Dish ||--o{ QualityReport : "evaluado_en"
+    Dish ||--o{ Incident : "relacionado_con"
+    
+    QualityReport ||--o{ QualityReportItem : "contiene"
+```
 
-### Dashboard
-- `GET /api/dashboard` - Obtener KPIs
+---
 
-### Auditoría
-- `GET /api/audit` - Listar logs de auditoría
+## 🔒 Permisos por Rol
 
-## 📝 Licencia
+| Acción | Super Admin | Company Admin | Branch Mgr | Supervisor | Auditor |
+|--------|:-----------:|:-------------:|:----------:|:----------:|:-------:|
+| Ver Dashboard | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Gestionar Empresas | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Gestionar Sucursales | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Gestionar Usuarios | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Gestionar Platos | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Gestionar Categorías | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Crear Reportes | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Gestionar Incidencias | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Ver Auditoría | ✅ | ✅ | ✅ | ❌ | ✅ |
+| Gestionar Permisos | ✅ | ✅ | ❌ | ❌ | ❌ |
 
-MIT License
+---
+
+## 🤝 Contribuir
+
+Las contribuciones son bienvenidas. Por favor:
+
+1. Haz un Fork del proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/NuevaCaracteristica`)
+3. Commit tus cambios (`git commit -m 'Agrega nueva característica'`)
+4. Push a la rama (`git push origin feature/NuevaCaracteristica`)
+5. Abre un Pull Request
+
+### Guías de Contribución
+- Sigue el estilo de código existente
+- Escribe tests para nuevas funcionalidades
+- Actualiza la documentación cuando sea necesario
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
+
+---
+
+## 📞 Soporte
+
+¿Tienes preguntas o problemas?
+
+- 📧 Email: soporte@kqs.com
+- 🐛 Issues: [GitHub Issues](https://github.com/tu-usuario/kqs-kitchen-quality-system/issues)
+
+---
+
+<div align="center">
+
+**Hecho con ❤️ para la industria de restaurantes**
+
+[⬆ Volver arriba](#-kitchen-quality-system-kqs)
+
+</div>

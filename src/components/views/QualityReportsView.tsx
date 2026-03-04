@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { qualityReportsApi, dishesApi, branchesApi, companiesApi } from '@/lib/api';
 import { useAuthStore } from '@/store/auth-store';
 import { useCompanySelectionStore } from '@/store/company-selection-store';
+import { usePermissionsStore } from '@/store/permissions-store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -114,7 +115,9 @@ export function QualityReportsView() {
     }>,
   });
 
-  const canCreate = user && (user.role === 'SUPERVISOR' || user.role === 'BRANCH_MANAGER' || user.role === 'COMPANY_ADMIN' || user.role === 'SUPER_ADMIN');
+  // Use actual permissions from store
+  const permissions = usePermissionsStore((state) => state.permissions);
+  const canCreate = permissions?.canCreateReports ?? false;
 
   const isSuperAdmin = user?.role === 'SUPER_ADMIN';
 

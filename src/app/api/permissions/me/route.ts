@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { apiSuccess, apiError, apiUnauthorized } from '@/lib/api-response';
-import { UserRole } from '@prisma/client';
+import { UserRole, Permission } from '@prisma/client';
 
 // Global permissions key
 const GLOBAL_COMPANY_ID = 'global';
@@ -150,8 +150,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if there are custom permissions for this role + company
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let customPermissions: any = null;
+    let customPermissions: Permission | null = null;
     
     // First check company-specific permissions
     if (userCompanyId) {

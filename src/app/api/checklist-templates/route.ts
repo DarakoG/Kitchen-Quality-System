@@ -88,19 +88,27 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { items, ...templateData } = body;
+    const { items, companyId: bodyCompanyId, ...templateData } = body;
 
-    if (!items || items.length === 0) {
-      return apiError('At least one item is required', 400);
+    // Validate items exist
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return apiError('At least one criteria item is required', 400);
     }
 
-    const validated = templateSchema.safeParse(templateData);
+    // Validate template data (without items)
+    const templateDataSchema = z.object({
+      name: z.string().min(2, 'Name must be at least 2 characters'),
+      description: z.string().optional().nullable(),
+      isDefault: z.boolean().optional(),
+    });
+    
+    const validated = templateDataSchema.safeParse(templateData);
 
     if (!validated.success) {
-    return apiValidationError(validated.error);
+      return apiValidationError(validated.error);
     }
 
-    const companyId = userRole === 'SUPER_ADMIN' ? body.companyId : userCompanyId;
+    const companyId = userRole === 'SUPER_ADMIN' ? bodyCompanyId : userCompanyId;
 
     if (!companyId) {
       return apiError('Company ID required', 400);
@@ -108,47 +116,47 @@ export async function POST(request: NextRequest) {
 
     // If setting as default, remove default from other templates
     if (validated.data.isDefault) {
-    await db.checklistTemplate.updateMany({
-      where: { companyId, isDefault: true },
-      data: { isDefault: false },
-    });
-  }
+      await db.checklistTemplate.updateMany({
+        where: { companyId, isDefault: true },
+        data: { isDefault: false },
+      });
+    }
 
     const template = await db.checklistTemplate.create({
-    data: {
-      companyId,
-      name: validated.data.name,
-      description: validated.data.description,
-      isDefault: validated.data.isDefault || false,
-      items: {
-        create: items.map((item: any, index: number) => ({
-          name: item.name,
-          description: item.description,
-          type: item.type as CriterionType,
-          isRequired: item.isRequired ?? true,
-          weight: item.weight ?? 1.0,
-          minValue: item.minValue,
-          maxValue: item.maxValue,
-          passingScore: item.passingScore,
-          sortOrder: index,
-        })),
+      data: {
+        companyId,
+        name: validated.data.name,
+        description: validated.data.description,
+        isDefault: validated.data.isDefault || false,
+        items: {
+          create: items.map((item: any, index: number) => ({
+            name: item.name,
+            description: item.description,
+            type: item.type as CriterionType,
+            isRequired: item.isRequired ?? true,
+            weight: item.weight ?? 1.0,
+            minValue: item.minValue,
+            maxValue: item.maxValue,
+            passingScore: item.passingScore,
+            sortOrder: index,
+          })),
+        },
       },
-    },
-    include: {
-      items: true,
-    },
-  });
+      include: {
+        items: true,
+      },
+    });
 
-  await createAuditLog({
-    companyId,
-    userId,
-    action: 'CREATE',
-    entityType: 'ChecklistTemplate',
-    entityId: template.id,
-    newValues: validated.data,
-  });
+    await createAuditLog({
+      companyId,
+      userId,
+      action: 'CREATE',
+      entityType: 'ChecklistTemplate',
+      entityId: template.id,
+      newValues: validated.data,
+    });
 
-  return apiSuccess(template, 'Template created successfully', 201);
+    return apiSuccess(template, 'Template created successfully', 201);
   } catch (error) {
     console.error('Create template error:', error);
     return apiError('Failed to create template', 500);

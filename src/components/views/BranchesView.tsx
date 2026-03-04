@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { branchesApi, companiesApi } from '@/lib/api';
 import { useAuthStore } from '@/store/auth-store';
+import { usePermissionsStore } from '@/store/permissions-store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -202,7 +203,9 @@ export function BranchesView() {
       branch.company?.name?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const canCreate = user && user.role !== 'AUDITOR' && user.role !== 'SUPERVISOR';
+  // Use actual permissions from store
+  const permissions = usePermissionsStore((state) => state.permissions);
+  const canCreate = permissions?.canManageBranches ?? false;
 
   if (loading) {
     return (

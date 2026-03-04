@@ -1,7 +1,8 @@
 import { create } from 'zustand';
-import { useAuthStore, User } from './auth-store';
+import { persist } from 'zustand/middleware';
+import { User } from './auth-store';
 
-export interface UserPermissions {
+export interface Permissions {
   role: string;
   canViewDashboard: boolean;
   canViewDishes: boolean;
@@ -27,188 +28,145 @@ export interface UserPermissions {
   canViewPermissions: boolean;
 }
 
-// Default permissions for each role (fallback)
-const defaultPermissions: Record<string, UserPermissions> = {
-  SUPER_ADMIN: {
-    role: 'SUPER_ADMIN',
-    canViewDashboard: true,
-    canViewDishes: true,
-    canManageDishes: true,
-    canViewCategories: true,
-    canManageCategories: true,
-    canViewReports: true,
-    canCreateReports: true,
-    canViewIncidents: true,
-    canCreateIncidents: true,
-    canManageIncidents: true,
-    canViewAlerts: true,
-    canManageAlerts: true,
-    canViewUsers: true,
-    canManageUsers: true,
-    canViewCompanies: true,
-    canManageCompanies: true,
-    canViewBranches: true,
-    canManageBranches: true,
-    canViewAudit: true,
-    canViewSettings: true,
-    canManageSettings: true,
-    canViewPermissions: true,
-  },
-  COMPANY_ADMIN: {
-    role: 'COMPANY_ADMIN',
-    canViewDashboard: true,
-    canViewDishes: true,
-    canManageDishes: true,
-    canViewCategories: true,
-    canManageCategories: true,
-    canViewReports: true,
-    canCreateReports: true,
-    canViewIncidents: true,
-    canCreateIncidents: true,
-    canManageIncidents: true,
-    canViewAlerts: true,
-    canManageAlerts: true,
-    canViewUsers: true,
-    canManageUsers: true,
-    canViewCompanies: true,
-    canManageCompanies: false,
-    canViewBranches: true,
-    canManageBranches: true,
-    canViewAudit: true,
-    canViewSettings: true,
-    canManageSettings: true,
-    canViewPermissions: true,
-  },
-  BRANCH_MANAGER: {
-    role: 'BRANCH_MANAGER',
-    canViewDashboard: true,
-    canViewDishes: true,
-    canManageDishes: false,
-    canViewCategories: true,
-    canManageCategories: false,
-    canViewReports: true,
-    canCreateReports: true,
-    canViewIncidents: true,
-    canCreateIncidents: true,
-    canManageIncidents: true,
-    canViewAlerts: true,
-    canManageAlerts: true,
-    canViewUsers: true,
-    canManageUsers: false,
-    canViewCompanies: false,
-    canManageCompanies: false,
-    canViewBranches: true,
-    canManageBranches: false,
-    canViewAudit: true,
-    canViewSettings: true,
-    canManageSettings: false,
-    canViewPermissions: false,
-  },
-  SUPERVISOR: {
-    role: 'SUPERVISOR',
-    canViewDashboard: true,
-    canViewDishes: true,
-    canManageDishes: false,
-    canViewCategories: true,
-    canManageCategories: false,
-    canViewReports: true,
-    canCreateReports: true,
-    canViewIncidents: true,
-    canCreateIncidents: true,
-    canManageIncidents: false,
-    canViewAlerts: true,
-    canManageAlerts: false,
-    canViewUsers: false,
-    canManageUsers: false,
-    canViewCompanies: false,
-    canManageCompanies: false,
-    canViewBranches: true,
-    canManageBranches: false,
-    canViewAudit: false,
-    canViewSettings: false,
-    canManageSettings: false,
-    canViewPermissions: false,
-  },
-  AUDITOR: {
-    role: 'AUDITOR',
-    canViewDashboard: true,
-    canViewDishes: true,
-    canManageDishes: false,
-    canViewCategories: true,
-    canManageCategories: false,
-    canViewReports: true,
-    canCreateReports: true,
-    canViewIncidents: true,
-    canCreateIncidents: false,
-    canManageIncidents: false,
-    canViewAlerts: true,
-    canManageAlerts: false,
-    canViewUsers: false,
-    canManageUsers: false,
-    canViewCompanies: false,
-    canManageCompanies: false,
-    canViewBranches: true,
-    canManageBranches: false,
-    canViewAudit: true,
-    canViewSettings: false,
-    canManageSettings: false,
-    canViewPermissions: false,
-  },
-};
-
 interface PermissionsState {
-  permissions: UserPermissions | null;
+  permissions: Permissions | null;
   isLoading: boolean;
-  loadPermissions: (user: User) => Promise<void>;
+  setPermissions: (permissions: Permissions | null) => void;
+  setLoading: (loading: boolean) => void;
   clearPermissions: () => void;
-  getDefaultPermissions: (role: string) => UserPermissions;
+  loadPermissions: (user: User) => Promise<void>;
 }
 
-export const usePermissionsStore = create<PermissionsState>((set, get) => ({
-  permissions: null,
-  isLoading: false,
-
-  loadPermissions: async (user: User) => {
-    set({ isLoading: true });
+// API helper for permissions
+async function fetchPermissions(): Promise<Permissions | null> {
+  try {
+    const response = await fetch('/api/permissions/me', {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
     
-    // Set default permissions immediately so UI can work
-    const defaults = defaultPermissions[user.role] || defaultPermissions.SUPERVISOR;
-    set({ permissions: defaults });
-    
-    try {
-      const response = await fetch('/api/permissions/me', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': user.id,
-          'x-user-role': user.role,
-          ...(user.companyId ? { 'x-user-company-id': user.companyId } : {}),
-          ...(user.branchId ? { 'x-user-branch-id': user.branchId } : {}),
-        },
-        credentials: 'include',
-      });
-
-      const result = await response.json();
-
-      if (result.success && result.data) {
-        set({ permissions: result.data, isLoading: false });
-      } else {
-        // Keep default permissions on error
-        console.error('Failed to load permissions:', result.error);
-        set({ isLoading: false });
-      }
-    } catch (error) {
-      console.error('Failed to load permissions:', error);
-      // Keep default permissions on error
-      set({ isLoading: false });
+    if (!response.ok) {
+      return null;
     }
-  },
+    
+    const data = await response.json();
+    return data.data || null;
+  } catch (error) {
+    console.error('Failed to fetch permissions:', error);
+    return null;
+  }
+}
 
-  clearPermissions: () => {
-    set({ permissions: null });
-  },
-  
-  getDefaultPermissions: (role: string) => {
-    return defaultPermissions[role] || defaultPermissions.SUPERVISOR;
-  },
-}));
+export const usePermissionsStore = create<PermissionsState>()(
+  persist(
+    (set) => ({
+      permissions: null,
+      isLoading: false,
+      setPermissions: (permissions) => set({ permissions }),
+      setLoading: (isLoading) => set({ isLoading }),
+      clearPermissions: () => set({ permissions: null }),
+      loadPermissions: async (user: User) => {
+        set({ isLoading: true });
+        try {
+          // Add user context headers
+          const response = await fetch('/api/permissions/me', {
+            headers: {
+              'Content-Type': 'application/json',
+              'x-user-id': user.id,
+              'x-user-role': user.role,
+              'x-user-company-id': user.companyId || '',
+            },
+            credentials: 'include',
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            set({ permissions: data.data || null, isLoading: false });
+          } else {
+            set({ permissions: null, isLoading: false });
+          }
+        } catch (error) {
+          console.error('Failed to load permissions:', error);
+          set({ permissions: null, isLoading: false });
+        }
+      },
+    }),
+    {
+      name: 'kqs-permissions',
+      partialize: (state) => ({ permissions: state.permissions }),
+    }
+  )
+);
+
+// Helper hooks for specific permissions
+export function useCanManageDishes() {
+  const permissions = usePermissionsStore((state) => state.permissions);
+  return permissions?.canManageDishes ?? false;
+}
+
+export function useCanManageCategories() {
+  const permissions = usePermissionsStore((state) => state.permissions);
+  return permissions?.canManageCategories ?? false;
+}
+
+export function useCanCreateReports() {
+  const permissions = usePermissionsStore((state) => state.permissions);
+  return permissions?.canCreateReports ?? false;
+}
+
+export function useCanManageIncidents() {
+  const permissions = usePermissionsStore((state) => state.permissions);
+  return permissions?.canManageIncidents ?? false;
+}
+
+export function useCanManageAlerts() {
+  const permissions = usePermissionsStore((state) => state.permissions);
+  return permissions?.canManageAlerts ?? false;
+}
+
+export function useCanManageUsers() {
+  const permissions = usePermissionsStore((state) => state.permissions);
+  return permissions?.canManageUsers ?? false;
+}
+
+export function useCanManageCompanies() {
+  const permissions = usePermissionsStore((state) => state.permissions);
+  return permissions?.canManageCompanies ?? false;
+}
+
+export function useCanManageBranches() {
+  const permissions = usePermissionsStore((state) => state.permissions);
+  return permissions?.canManageBranches ?? false;
+}
+
+export function useCanManageSettings() {
+  const permissions = usePermissionsStore((state) => state.permissions);
+  return permissions?.canManageSettings ?? false;
+}
+
+export function useCanViewPermissions() {
+  const permissions = usePermissionsStore((state) => state.permissions);
+  return permissions?.canViewPermissions ?? false;
+}
+
+export function useCanViewAudit() {
+  const permissions = usePermissionsStore((state) => state.permissions);
+  return permissions?.canViewAudit ?? false;
+}
+
+export function useCanViewUsers() {
+  const permissions = usePermissionsStore((state) => state.permissions);
+  return permissions?.canViewUsers ?? false;
+}
+
+export function useCanViewCompanies() {
+  const permissions = usePermissionsStore((state) => state.permissions);
+  return permissions?.canViewCompanies ?? false;
+}
+
+export function useCanViewBranches() {
+  const permissions = usePermissionsStore((state) => state.permissions);
+  return permissions?.canViewBranches ?? false;
+}

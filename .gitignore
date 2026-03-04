@@ -39,13 +39,41 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Database files
+*.db
+*.db-journal
+db/
+
+# Uploads
+upload/
+
+# Logs
+dev.log
+server.log
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local config
 local-*
 .claude
 .z-ai-config
-dev.log
-test
-prompt
 
-server.log
-# Skills directory
-/skills/
+# Mini services
+mini-services/
+
+# Scripts (internal)
+.zscripts/
+
+# Prompt files
+prompt/
+test/

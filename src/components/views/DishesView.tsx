@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { dishesApi, categoriesApi, companiesApi, checklistsApi, checklistTemplatesApi } from '@/lib/api';
 import { useAuthStore } from '@/store/auth-store';
 import { useCompanySelectionStore } from '@/store/company-selection-store';
+import { usePermissionsStore } from '@/store/permissions-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -119,6 +120,7 @@ export function DishesView() {
   const [editingDish, setEditingDish] = useState<Dish | null>(null);
   const [saving, setSaving] = useState(false);
   const [formCompanyId, setFormCompanyId] = useState<string>('');
+  const [formTemplateId, setFormTemplateId] = useState<string>('__none__');
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -144,6 +146,20 @@ export function DishesView() {
     name: '',
     description: '',
     type: 'SCORE_1_5',
+    isRequired: true,
+    weight: 1.0,
+    minValue: null as number | null,
+    maxValue: null as number | null,
+    passingScore: null as number | null,
+  });
+
+  // Template criterion dialog state (for creating/editing templates)
+  const [templateCriterionDialogOpen, setTemplateCriterionDialogOpen] = useState(false);
+  const [editingTemplateItemIndex, setEditingTemplateItemIndex] = useState<number | null>(null);
+  const [templateCriterionForm, setTemplateCriterionForm] = useState({
+    name: '',
+    description: '',
+    type: 'SCORE_1_5' as 'SCORE_1_5' | 'BOOLEAN' | 'NUMERIC' | 'TEXT',
     isRequired: true,
     weight: 1.0,
     minValue: null as number | null,
@@ -320,10 +336,27 @@ export function DishesView() {
       }
 
       if (result.success) {
-        toast.success(editingDish ? 'Dish updated successfully' : 'Dish created successfully');
+        // If creating a new dish and a template is selected, apply it
+        const shouldApplyTemplate = !editingDish && formTemplateId && formTemplateId !== '__none__' && result.data?.id;
+        if (shouldApplyTemplate) {
+          try {
+            const templateResult = await checklistTemplatesApi.applyToDishes(formTemplateId, [result.data.id]);
+            if (templateResult.success) {
+              toast.success('Dish created with template criteria applied');
+            } else {
+              toast.success('Dish created, but failed to apply template');
+            }
+          } catch (templateErr) {
+            console.error('Failed to apply template:', templateErr);
+            toast.success('Dish created, but failed to apply template');
+          }
+        } else {
+          toast.success(editingDish ? 'Dish updated successfully' : 'Dish created successfully');
+        }
         setDialogOpen(false);
         setEditingDish(null);
         setFormData({ name: '', description: '', categoryId: '', sku: '', prepTime: '' });
+        setFormTemplateId('__none__');
         loadData();
       } else {
         toast.error(result.error || 'Failed to save dish');
@@ -437,21 +470,79 @@ export function DishesView() {
   };
 
   const handleAddTemplateItem = () => {
-    setTemplateItems([
-      ...templateItems,
-      {
-        id: `temp-${Date.now()}`,
-        name: '',
-        description: '',
-        type: 'SCORE_1_5',
-        isRequired: true,
-        weight: 1.0,
-        minValue: null,
-        maxValue: null,
-        passingScore: null,
-        sortOrder: templateItems.length,
-      },
-    ]);
+    setEditingTemplateItemIndex(null);
+    setTemplateCriterionForm({
+      name: '',
+      description: '',
+      type: 'SCORE_1_5',
+      isRequired: true,
+      weight: 1.0,
+      minValue: null,
+      maxValue: null,
+      passingScore: null,
+    });
+    setTemplateCriterionDialogOpen(true);
+  };
+
+  const handleEditTemplateItem = (index: number) => {
+    const item = templateItems[index];
+    setEditingTemplateItemIndex(index);
+    setTemplateCriterionForm({
+      name: item.name,
+      description: item.description || '',
+      type: item.type as 'SCORE_1_5' | 'BOOLEAN' | 'NUMERIC' | 'TEXT',
+      isRequired: item.isRequired,
+      weight: item.weight,
+      minValue: item.minValue,
+      maxValue: item.maxValue,
+      passingScore: item.passingScore,
+    });
+    setTemplateCriterionDialogOpen(true);
+  };
+
+  const handleSaveTemplateCriterion = () => {
+    if (!templateCriterionForm.name.trim()) {
+      toast.error('Criterion name is required');
+      return;
+    }
+
+    const newItem: ChecklistTemplateItem = {
+      id: editingTemplateItemIndex !== null ? templateItems[editingTemplateItemIndex].id : `temp-${Date.now()}`,
+      name: templateCriterionForm.name.trim(),
+      description: templateCriterionForm.description || null,
+      type: templateCriterionForm.type,
+      isRequired: templateCriterionForm.isRequired,
+      weight: templateCriterionForm.weight,
+      minValue: templateCriterionForm.type === 'NUMERIC' ? templateCriterionForm.minValue : null,
+      maxValue: templateCriterionForm.type === 'NUMERIC' ? templateCriterionForm.maxValue : null,
+      passingScore: templateCriterionForm.passingScore,
+      sortOrder: editingTemplateItemIndex !== null ? templateItems[editingTemplateItemIndex].sortOrder : templateItems.length,
+    };
+
+    if (editingTemplateItemIndex !== null) {
+      // Update existing item
+      const newItems = [...templateItems];
+      newItems[editingTemplateItemIndex] = newItem;
+      setTemplateItems(newItems);
+      toast.success('Criterion updated');
+    } else {
+      // Add new item
+      setTemplateItems([...templateItems, newItem]);
+      toast.success('Criterion added');
+    }
+
+    setTemplateCriterionDialogOpen(false);
+    setEditingTemplateItemIndex(null);
+    setTemplateCriterionForm({
+      name: '',
+      description: '',
+      type: 'SCORE_1_5',
+      isRequired: true,
+      weight: 1.0,
+      minValue: null,
+      maxValue: null,
+      passingScore: null,
+    });
   };
 
   const handleUpdateTemplateItem = (index: number, field: keyof ChecklistTemplateItem, value: any) => {
@@ -782,9 +873,11 @@ export function DishesView() {
     }
   };
 
-  const canCreate = user && user.role !== 'AUDITOR';
-  const canManageTemplates = user && (user.role === 'SUPER_ADMIN' || user.role === 'COMPANY_ADMIN');
-  const canApplyTemplates = user && user.role !== 'AUDITOR';
+  // Use actual permissions from store
+  const permissions = usePermissionsStore((state) => state.permissions);
+  const canCreate = permissions?.canManageDishes ?? false;
+  const canManageTemplates = permissions?.canManageDishes ?? false;
+  const canApplyTemplates = permissions?.canManageDishes ?? false;
 
   if (loading) {
     return (
@@ -808,6 +901,7 @@ export function DishesView() {
                 <Button onClick={() => {
                   setEditingDish(null);
                   setFormData({ name: '', description: '', categoryId: '', sku: '', prepTime: '' });
+                  setFormTemplateId('__none__');
                   if (!isSuperAdmin && user?.companyId) {
                     setFormCompanyId(user.companyId);
                   } else {
@@ -909,6 +1003,33 @@ export function DishesView() {
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     />
                   </div>
+                  
+                  {/* Template selector - only for new dishes */}
+                  {!editingDish && templates.length > 0 && (
+                    <div className="space-y-2">
+                      <Label htmlFor="template">Apply Quality Template (Optional)</Label>
+                      <Select
+                        value={formTemplateId}
+                        onValueChange={setFormTemplateId}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a template to apply criteria automatically" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">None</SelectItem>
+                          {templates.map((template) => (
+                            <SelectItem key={template.id} value={template.id}>
+                              {template.name} ({template.items?.length || 0} criteria)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Templates let you quickly add quality criteria to new dishes
+                      </p>
+                    </div>
+                  )}
+                  
                   <div className="flex justify-end gap-2">
                     <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                       Cancel
@@ -1480,7 +1601,7 @@ export function DishesView() {
 
       {/* Template management dialog */}
       <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Copy className="h-5 w-5 text-emerald-600" />
@@ -1514,80 +1635,73 @@ export function DishesView() {
             </div>
 
             <div className="flex justify-between items-center">
-              <p className="text-sm text-muted-foreground">
-                Template Items ({templateItems.length})
+              <p className="text-sm font-medium">
+                Template Criteria ({templateItems.length})
               </p>
-              <Button type="button" onClick={handleAddTemplateItem} size="sm" variant="outline">
-                <Plus className="mr-2 h-4 w-4" /> Add Item
+              <Button type="button" onClick={handleAddTemplateItem} size="sm">
+                <Plus className="mr-2 h-4 w-4" /> Add Criterion
               </Button>
             </div>
 
             {templateItems.length === 0 ? (
               <Card className="border-dashed">
-                <CardContent className="py-4 text-center">
-                  <p className="text-muted-foreground">
-                    No items added yet. Click &quot;Add Item&quot; to create criteria.
+                <CardContent className="py-8 text-center">
+                  <ListChecks className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground mb-2">
+                    No quality criteria configured yet.
                   </p>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Add criteria like presentation, temperature, taste, etc.
+                  </p>
+                  <Button type="button" onClick={handleAddTemplateItem}>
+                    <Plus className="mr-2 h-4 w-4" /> Add First Criterion
+                  </Button>
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-80 overflow-y-auto">
                 {templateItems.map((item, index) => (
                   <Card key={item.id}>
                     <CardContent className="py-3">
-                      <div className="grid grid-cols-12 gap-2 items-center">
-                        <div className="col-span-1 text-muted-foreground text-sm">
-                          {index + 1}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <GripVertical className="h-4 w-4" />
+                            <span className="text-sm font-medium">{index + 1}</span>
+                          </div>
+                          <div>
+                            <p className="font-medium">{item.name}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant="outline" className="text-xs">
+                                {getTypeLabel(item.type)}
+                              </Badge>
+                              {item.isRequired && (
+                                <Badge variant="outline" className="text-xs bg-red-50 text-red-700">
+                                  Required
+                                </Badge>
+                              )}
+                              {item.description && (
+                                <span className="text-xs text-muted-foreground truncate max-w-[150px]">
+                                  {item.description}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="col-span-4">
-                          <Input
-                            type="text"
-                            value={item.name}
-                            onChange={(e) => handleUpdateTemplateItem(index, 'name', e.target.value)}
-                            placeholder="e.g., Presentation"
-                            className="text-sm"
-                          />
-                        </div>
-                        <div className="col-span-2">
-                          <Select
-                            value={item.type}
-                            onValueChange={(v) => handleUpdateTemplateItem(index, 'type', v)}
-                          >
-                            <SelectTrigger className="text-sm">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="SCORE_1_5">Score 1-5</SelectItem>
-                              <SelectItem value="BOOLEAN">Yes/No</SelectItem>
-                              <SelectItem value="NUMERIC">Numeric</SelectItem>
-                              <SelectItem value="TEXT">Text</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="col-span-2">
-                          <Input
-                            type="number"
-                            step="0.1"
-                            min="0.1"
-                            max="10"
-                            value={item.weight}
-                            onChange={(e) => handleUpdateTemplateItem(index, 'weight', parseFloat(e.target.value) || 1)}
-                            className="text-sm"
-                            placeholder="Weight"
-                          />
-                        </div>
-                        <div className="col-span-2 flex items-center gap-1">
-                          <Checkbox
-                            checked={item.isRequired}
-                            onCheckedChange={(checked) => handleUpdateTemplateItem(index, 'isRequired', checked)}
-                          />
-                          <span className="text-xs">Req</span>
-                        </div>
-                        <div className="col-span-1">
-                          <Button
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">Weight: {item.weight}</span>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
                             type="button"
-                            variant="ghost"
-                            size="icon"
+                            onClick={() => handleEditTemplateItem(index)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            type="button"
                             onClick={() => handleRemoveTemplateItem(index)}
                           >
                             <Trash2 className="h-4 w-4 text-red-500" />
@@ -1726,6 +1840,133 @@ export function DishesView() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add/Edit Template Criterion Dialog */}
+      <Dialog open={templateCriterionDialogOpen} onOpenChange={setTemplateCriterionDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingTemplateItemIndex !== null ? 'Edit Criterion' : 'Add New Criterion'}</DialogTitle>
+            <DialogDescription>
+              Define a quality evaluation criterion for this template.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="criterionName">Name *</Label>
+              <Input
+                id="criterionName"
+                value={templateCriterionForm.name}
+                onChange={(e) => setTemplateCriterionForm({ ...templateCriterionForm, name: e.target.value })}
+                placeholder="e.g., Presentation, Temperature, Taste"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="criterionDescription">Description</Label>
+              <Textarea
+                id="criterionDescription"
+                value={templateCriterionForm.description}
+                onChange={(e) => setTemplateCriterionForm({ ...templateCriterionForm, description: e.target.value })}
+                placeholder="Optional description of this criterion"
+                rows={2}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="criterionType">Evaluation Type *</Label>
+              <Select
+                value={templateCriterionForm.type}
+                onValueChange={(v: 'SCORE_1_5' | 'BOOLEAN' | 'NUMERIC' | 'TEXT') => setTemplateCriterionForm({ ...templateCriterionForm, type: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SCORE_1_5">Score (1-5) - Rating scale</SelectItem>
+                  <SelectItem value="BOOLEAN">Yes/No - Pass or fail</SelectItem>
+                  <SelectItem value="NUMERIC">Numeric - Custom range</SelectItem>
+                  <SelectItem value="TEXT">Text - Written feedback</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {templateCriterionForm.type === 'NUMERIC' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="criterionMinValue">Minimum Value</Label>
+                  <Input
+                    id="criterionMinValue"
+                    type="number"
+                    value={templateCriterionForm.minValue || ''}
+                    onChange={(e) => setTemplateCriterionForm({ ...templateCriterionForm, minValue: parseFloat(e.target.value) || null })}
+                    placeholder="e.g., 0"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="criterionMaxValue">Maximum Value</Label>
+                  <Input
+                    id="criterionMaxValue"
+                    type="number"
+                    value={templateCriterionForm.maxValue || ''}
+                    onChange={(e) => setTemplateCriterionForm({ ...templateCriterionForm, maxValue: parseFloat(e.target.value) || null })}
+                    placeholder="e.g., 100"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="criterionWeight">Weight</Label>
+                <Input
+                  id="criterionWeight"
+                  type="number"
+                  step="0.1"
+                  min="0.1"
+                  max="10"
+                  value={templateCriterionForm.weight}
+                  onChange={(e) => setTemplateCriterionForm({ ...templateCriterionForm, weight: parseFloat(e.target.value) || 1 })}
+                />
+                <p className="text-xs text-muted-foreground">Higher weight = more impact on score</p>
+              </div>
+
+              <div className="space-y-2 flex items-center pt-6">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={templateCriterionForm.isRequired}
+                    onChange={(e) => setTemplateCriterionForm({ ...templateCriterionForm, isRequired: e.target.checked })}
+                    className="h-4 w-4"
+                  />
+                  <span className="text-sm">Required criterion</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="criterionPassingScore">Passing Score (Optional)</Label>
+              <Input
+                id="criterionPassingScore"
+                type="number"
+                step="0.1"
+                value={templateCriterionForm.passingScore || ''}
+                onChange={(e) => setTemplateCriterionForm({ ...templateCriterionForm, passingScore: parseFloat(e.target.value) || null })}
+                placeholder="e.g., 3 for score type, 70 for numeric"
+              />
+              <p className="text-xs text-muted-foreground">Minimum score to pass this criterion</p>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button type="button" variant="outline" onClick={() => setTemplateCriterionDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="button" onClick={handleSaveTemplateCriterion} disabled={!templateCriterionForm.name.trim()}>
+                {editingTemplateItemIndex !== null ? 'Update' : 'Add'} Criterion
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

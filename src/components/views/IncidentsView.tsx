@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { incidentsApi, branchesApi, dishesApi } from '@/lib/api';
 import { useAuthStore } from '@/store/auth-store';
+import { usePermissionsStore } from '@/store/permissions-store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -96,6 +97,7 @@ export function IncidentsView() {
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [correctiveAction, setCorrectiveAction] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
   
   // Create incident state
   const [createOpen, setCreateOpen] = useState(false);
@@ -109,7 +111,10 @@ export function IncidentsView() {
     correctiveAction: '',
   });
 
-  const canCreate = user && (user.role === 'SUPERVISOR' || user.role === 'BRANCH_MANAGER' || user.role === 'COMPANY_ADMIN' || user.role === 'SUPER_ADMIN');
+  // Use actual permissions from store
+  const permissions = usePermissionsStore((state) => state.permissions);
+  const canCreate = permissions?.canCreateIncidents ?? false;
+  const canManage = permissions?.canManageIncidents ?? false;
 
   useEffect(() => {
     loadIncidents();
@@ -340,6 +345,7 @@ export function IncidentsView() {
                         onClick={() => {
                           setSelectedIncident(incident);
                           setCorrectiveAction(incident.correctiveAction || '');
+                          setSelectedStatus(incident.status);
                           setDetailOpen(true);
                         }}
                       >
@@ -530,6 +536,24 @@ export function IncidentsView() {
               </div>
 
               <div className="space-y-2">
+                <Label>Change Status</Label>
+                <Select
+                  value={selectedStatus}
+                  onValueChange={setSelectedStatus}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                    <SelectItem value="RESOLVED">Resolved</SelectItem>
+                    <SelectItem value="CLOSED">Closed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <Label className="text-muted-foreground">Corrective Action</Label>
                 <Textarea
                   value={correctiveAction}
@@ -540,21 +564,34 @@ export function IncidentsView() {
               </div>
 
               <div className="flex justify-end gap-2">
-                {selectedIncident.status === 'PENDING' && (
-                  <Button onClick={() => handleUpdateStatus(selectedIncident.id, 'IN_PROGRESS')}>
-                    Start Investigation
+                {canManage && selectedStatus !== selectedIncident.status && (
+                  <Button 
+                    onClick={() => handleUpdateStatus(selectedIncident.id, selectedStatus)}
+                    disabled={saving}
+                  >
+                    {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Save Changes
                   </Button>
                 )}
-                {selectedIncident.status === 'IN_PROGRESS' && (
-                  <Button onClick={() => handleUpdateStatus(selectedIncident.id, 'RESOLVED')}>
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Mark Resolved
-                  </Button>
-                )}
-                {selectedIncident.status === 'RESOLVED' && (
-                  <Button variant="outline" onClick={() => handleUpdateStatus(selectedIncident.id, 'CLOSED')}>
-                    Close Incident
-                  </Button>
+                {canManage && selectedStatus === selectedIncident.status && (
+                  <>
+                    {selectedIncident.status === 'PENDING' && (
+                      <Button onClick={() => handleUpdateStatus(selectedIncident.id, 'IN_PROGRESS')}>
+                        Start Investigation
+                      </Button>
+                    )}
+                    {selectedIncident.status === 'IN_PROGRESS' && (
+                      <Button onClick={() => handleUpdateStatus(selectedIncident.id, 'RESOLVED')}>
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Mark Resolved
+                      </Button>
+                    )}
+                    {selectedIncident.status === 'RESOLVED' && (
+                      <Button variant="outline" onClick={() => handleUpdateStatus(selectedIncident.id, 'CLOSED')}>
+                        Close Incident
+                      </Button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
