@@ -1,7 +1,15 @@
-import { db } from './db';
-import { headers } from 'next/headers';
+import { db } from "./db";
+import { headers } from "next/headers";
 
-export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'LOGOUT' | 'VIEW' | 'EXPORT';
+export type AuditAction =
+  | "CREATE"
+  | "UPDATE"
+  | "DELETE"
+  | "LOGIN"
+  | "LOGOUT"
+  | "VIEW"
+  | "EXPORT"
+  | "APPLY_TEMPLATE";
 
 interface AuditLogData {
   companyId?: string | null;
@@ -17,8 +25,11 @@ interface AuditLogData {
 export async function createAuditLog(data: AuditLogData): Promise<void> {
   try {
     const headersList = await headers();
-    const ipAddress = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || undefined;
-    const userAgent = headersList.get('user-agent') || undefined;
+    const ipAddress =
+      headersList.get("x-forwarded-for") ||
+      headersList.get("x-real-ip") ||
+      undefined;
+    const userAgent = headersList.get("user-agent") || undefined;
 
     await db.auditLog.create({
       data: {
@@ -35,7 +46,7 @@ export async function createAuditLog(data: AuditLogData): Promise<void> {
       },
     });
   } catch (error) {
-    console.error('Failed to create audit log:', error);
+    console.error("Failed to create audit log:", error);
     // Don't throw - audit logging should not break the main operation
   }
 }

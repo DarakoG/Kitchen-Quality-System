@@ -1,16 +1,22 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { dishesApi, categoriesApi, companiesApi, checklistsApi, checklistTemplatesApi } from '@/lib/api';
-import { useAuthStore } from '@/store/auth-store';
-import { useCompanySelectionStore } from '@/store/company-selection-store';
-import { usePermissionsStore } from '@/store/permissions-store';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { useEffect, useState } from "react";
+import {
+  dishesApi,
+  categoriesApi,
+  companiesApi,
+  checklistsApi,
+  checklistTemplatesApi,
+} from "@/lib/api";
+import { useAuthStore } from "@/store/auth-store";
+import { useCompanySelectionStore } from "@/store/company-selection-store";
+import { usePermissionsStore } from "@/store/permissions-store";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -18,7 +24,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -26,26 +32,52 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Plus, Search, Loader2, Edit, Trash2, Building2, ListChecks, Copy, MoreHorizontal, Settings, CheckSquare, GripVertical, Check, ArrowRightFromLine } from 'lucide-react';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
+} from "@/components/ui/dropdown-menu";
+import {
+  Plus,
+  Search,
+  Loader2,
+  Edit,
+  Trash2,
+  Building2,
+  ListChecks,
+  Copy,
+  MoreHorizontal,
+  Settings,
+  CheckSquare,
+  GripVertical,
+  Check,
+  ArrowRightFromLine,
+} from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Dish {
   id: string;
@@ -109,43 +141,48 @@ interface ChecklistItem {
 
 export function DishesView() {
   const { user } = useAuthStore();
-  const { selectedCompanyId, setSelectedCompanyId } = useCompanySelectionStore();
+  const { selectedCompanyId, setSelectedCompanyId } =
+    useCompanySelectionStore();
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [templates, setTemplates] = useState<ChecklistTemplate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingDish, setEditingDish] = useState<Dish | null>(null);
   const [saving, setSaving] = useState(false);
-  const [formCompanyId, setFormCompanyId] = useState<string>('');
-  const [formTemplateId, setFormTemplateId] = useState<string>('__none__');
+  const [formCompanyId, setFormCompanyId] = useState<string>("");
+  const [formTemplateId, setFormTemplateId] = useState<string>("__none__");
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    categoryId: '',
-    sku: '',
-    prepTime: '',
+    name: "",
+    description: "",
+    categoryId: "",
+    sku: "",
+    prepTime: "",
   });
 
   // Template management state
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<ChecklistTemplate | null>(null);
-  const [editingTemplate, setEditingTemplate] = useState<ChecklistTemplate | null>(null);
-  const [templateItems, setTemplateItems] = useState<ChecklistTemplateItem[]>([]);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<ChecklistTemplate | null>(null);
+  const [editingTemplate, setEditingTemplate] =
+    useState<ChecklistTemplate | null>(null);
+  const [templateItems, setTemplateItems] = useState<ChecklistTemplateItem[]>(
+    [],
+  );
   const [templateForm, setTemplateForm] = useState({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
   });
 
   // Checklist item dialog state
   const [templateItemDialogOpen, setTemplateItemDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ChecklistItem | null>(null);
   const [templateItemForm, setTemplateItemForm] = useState({
-    name: '',
-    description: '',
-    type: 'SCORE_1_5',
+    name: "",
+    description: "",
+    type: "SCORE_1_5",
     isRequired: true,
     weight: 1.0,
     minValue: null as number | null,
@@ -154,12 +191,15 @@ export function DishesView() {
   });
 
   // Template criterion dialog state (for creating/editing templates)
-  const [templateCriterionDialogOpen, setTemplateCriterionDialogOpen] = useState(false);
-  const [editingTemplateItemIndex, setEditingTemplateItemIndex] = useState<number | null>(null);
+  const [templateCriterionDialogOpen, setTemplateCriterionDialogOpen] =
+    useState(false);
+  const [editingTemplateItemIndex, setEditingTemplateItemIndex] = useState<
+    number | null
+  >(null);
   const [templateCriterionForm, setTemplateCriterionForm] = useState({
-    name: '',
-    description: '',
-    type: 'SCORE_1_5' as 'SCORE_1_5' | 'BOOLEAN' | 'NUMERIC' | 'TEXT',
+    name: "",
+    description: "",
+    type: "SCORE_1_5" as "SCORE_1_5" | "BOOLEAN" | "NUMERIC" | "TEXT",
     isRequired: true,
     weight: 1.0,
     minValue: null as number | null,
@@ -169,7 +209,9 @@ export function DishesView() {
 
   // Apply template state
   const [applyTemplateOpen, setApplyTemplateOpen] = useState(false);
-  const [selectedDishesForTemplate, setSelectedDishesForTemplate] = useState<Dish[]>([]);
+  const [selectedDishesForTemplate, setSelectedDishesForTemplate] = useState<
+    Dish[]
+  >([]);
 
   // Checklist management state
   const [checklistDialogOpen, setChecklistDialogOpen] = useState(false);
@@ -179,16 +221,16 @@ export function DishesView() {
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [copySourceDish, setCopySourceDish] = useState<Dish | null>(null);
   const [copySearchOpen, setCopySearchOpen] = useState(false);
-  const [copySearchValue, setCopySearchValue] = useState('');
+  const [copySearchValue, setCopySearchValue] = useState("");
 
   // Push to dishes state
   const [pushDialogOpen, setPushDialogOpen] = useState(false);
   const [pushTargetDishes, setPushTargetDishes] = useState<Dish[]>([]);
-  const [pushSearchValue, setPushSearchValue] = useState('');
+  const [pushSearchValue, setPushSearchValue] = useState("");
 
   const [savingChecklist, setSavingChecklist] = useState(false);
   const [savingApply, setSavingApply] = useState(false);
-  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
 
   useEffect(() => {
     loadData();
@@ -205,9 +247,10 @@ export function DishesView() {
   }, [selectedCompanyId, isSuperAdmin]);
 
   const filteredDishes = dishes.filter((dish) => {
-    const matchesSearch = dish.name.toLowerCase().includes(search.toLowerCase()) ||
+    const matchesSearch =
+      dish.name.toLowerCase().includes(search.toLowerCase()) ||
       dish.sku?.toLowerCase().includes(search.toLowerCase());
-    if (isSuperAdmin && selectedCompanyId && selectedCompanyId !== 'all') {
+    if (isSuperAdmin && selectedCompanyId && selectedCompanyId !== "all") {
       return dish.companyId === selectedCompanyId && matchesSearch;
     }
     return matchesSearch;
@@ -217,7 +260,7 @@ export function DishesView() {
     if (!user) return;
     setLoading(true);
     try {
-      if (user.role === 'SUPER_ADMIN') {
+      if (user.role === "SUPER_ADMIN") {
         const companiesResult = await companiesApi.list({ limit: 100 });
         if (companiesResult.success && companiesResult.data) {
           setCompanies(companiesResult.data);
@@ -228,8 +271,14 @@ export function DishesView() {
         }
       } else {
         const [dishesResult, categoriesResult] = await Promise.all([
-          dishesApi.list({ companyId: user.companyId, limit: 100 }),
-          categoriesApi.list({ companyId: user.companyId, limit: 100 }),
+          dishesApi.list({
+            companyId: user.companyId ?? undefined,
+            limit: 100,
+          }),
+          categoriesApi.list({
+            companyId: user.companyId ?? undefined,
+            limit: 100,
+          }),
         ]);
 
         if (dishesResult.success && dishesResult.data) {
@@ -238,14 +287,14 @@ export function DishesView() {
         if (categoriesResult.success && categoriesResult.data) {
           setCategories(categoriesResult.data);
         }
-        
+
         if (user.companyId) {
           setSelectedCompanyId(user.companyId);
         }
       }
     } catch (err) {
-      console.error('Failed to load dishes:', err);
-      toast.error('Failed to load data');
+      console.error("Failed to load dishes:", err);
+      toast.error("Failed to load data");
     } finally {
       setLoading(false);
     }
@@ -260,15 +309,18 @@ export function DishesView() {
 
   const loadTemplates = async () => {
     const companyId = isSuperAdmin ? selectedCompanyId : user?.companyId;
-    if (!companyId || companyId === 'all') return;
-    
+    if (!companyId || companyId === "all") return;
+
     try {
-      const result = await checklistTemplatesApi.list({ companyId, limit: 100 });
+      const result = await checklistTemplatesApi.list({
+        companyId,
+        limit: 100,
+      });
       if (result.success && result.data) {
         setTemplates(result.data);
       }
     } catch (err) {
-      console.error('Failed to load templates:', err);
+      console.error("Failed to load templates:", err);
     }
   };
 
@@ -277,48 +329,50 @@ export function DishesView() {
     setSelectedCompanyId(dish.companyId);
     setFormData({
       name: dish.name,
-      description: dish.description || '',
-      categoryId: dish.category?.id || '',
-      sku: dish.sku || '',
-      prepTime: dish.prepTime?.toString() || '',
+      description: dish.description || "",
+      categoryId: dish.category?.id || "",
+      sku: dish.sku || "",
+      prepTime: dish.prepTime?.toString() || "",
     });
-    if (user?.role === 'SUPER_ADMIN') {
+    if (user?.role === "SUPER_ADMIN") {
       loadCategories(dish.companyId);
     }
     setDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this dish?')) return;
-    
+    if (!confirm("Are you sure you want to delete this dish?")) return;
+
     try {
       const result = await dishesApi.delete(id);
       if (result.success) {
-        toast.success('Dish deleted successfully');
+        toast.success("Dish deleted successfully");
         loadData();
       } else {
-        toast.error(result.error || 'Failed to delete dish');
+        toast.error(result.error || "Failed to delete dish");
       }
     } catch (err) {
-      console.error('Failed to delete dish:', err);
-      toast.error('Failed to delete dish');
+      console.error("Failed to delete dish:", err);
+      toast.error("Failed to delete dish");
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (user?.role === 'SUPER_ADMIN' && !editingDish && !formCompanyId) {
-      toast.error('Please select a company');
+
+    if (user?.role === "SUPER_ADMIN" && !editingDish && !formCompanyId) {
+      toast.error("Please select a company");
       return;
     }
-    
+
     setSaving(true);
     try {
-      const companyId = editingDish 
-        ? editingDish.companyId 
-        : (user?.role === 'SUPER_ADMIN' ? formCompanyId : user?.companyId);
-      
+      const companyId = editingDish
+        ? editingDish.companyId
+        : user?.role === "SUPER_ADMIN"
+          ? formCompanyId
+          : user?.companyId;
+
       const data = {
         name: formData.name,
         description: formData.description || undefined,
@@ -337,33 +391,50 @@ export function DishesView() {
 
       if (result.success) {
         // If creating a new dish and a template is selected, apply it
-        const shouldApplyTemplate = !editingDish && formTemplateId && formTemplateId !== '__none__' && result.data?.id;
+        const shouldApplyTemplate =
+          !editingDish &&
+          formTemplateId &&
+          formTemplateId !== "__none__" &&
+          result.data?.id;
         if (shouldApplyTemplate) {
           try {
-            const templateResult = await checklistTemplatesApi.applyToDishes(formTemplateId, [result.data.id]);
+            const templateResult = await checklistTemplatesApi.applyToDishes(
+              formTemplateId,
+              [result.data.id],
+            );
             if (templateResult.success) {
-              toast.success('Dish created with template criteria applied');
+              toast.success("Dish created with template criteria applied");
             } else {
-              toast.success('Dish created, but failed to apply template');
+              toast.success("Dish created, but failed to apply template");
             }
           } catch (templateErr) {
-            console.error('Failed to apply template:', templateErr);
-            toast.success('Dish created, but failed to apply template');
+            console.error("Failed to apply template:", templateErr);
+            toast.success("Dish created, but failed to apply template");
           }
         } else {
-          toast.success(editingDish ? 'Dish updated successfully' : 'Dish created successfully');
+          toast.success(
+            editingDish
+              ? "Dish updated successfully"
+              : "Dish created successfully",
+          );
         }
         setDialogOpen(false);
         setEditingDish(null);
-        setFormData({ name: '', description: '', categoryId: '', sku: '', prepTime: '' });
-        setFormTemplateId('__none__');
+        setFormData({
+          name: "",
+          description: "",
+          categoryId: "",
+          sku: "",
+          prepTime: "",
+        });
+        setFormTemplateId("__none__");
         loadData();
       } else {
-        toast.error(result.error || 'Failed to save dish');
+        toast.error(result.error || "Failed to save dish");
       }
     } catch (err) {
-      console.error('Failed to save dish:', err);
-      toast.error('Failed to save dish');
+      console.error("Failed to save dish:", err);
+      toast.error("Failed to save dish");
     } finally {
       setSaving(false);
     }
@@ -372,11 +443,11 @@ export function DishesView() {
   // Template management handlers
   const handleCreateTemplate = () => {
     if (isSuperAdmin && !selectedCompanyId) {
-      toast.error('Please select a company first');
+      toast.error("Please select a company first");
       return;
     }
     setEditingTemplate(null);
-    setTemplateForm({ name: '', description: '' });
+    setTemplateForm({ name: "", description: "" });
     setTemplateItems([]);
     setTemplateDialogOpen(true);
   };
@@ -385,44 +456,44 @@ export function DishesView() {
     setEditingTemplate(template);
     setTemplateForm({
       name: template.name,
-      description: template.description || '',
+      description: template.description || "",
     });
     setTemplateItems(template.items || []);
     setTemplateDialogOpen(true);
   };
 
   const handleDeleteTemplate = async (templateId: string) => {
-    if (!confirm('Are you sure you want to delete this template?')) return;
-    
+    if (!confirm("Are you sure you want to delete this template?")) return;
+
     try {
       const result = await checklistTemplatesApi.delete(templateId);
       if (result.success) {
-        toast.success('Template deleted');
+        toast.success("Template deleted");
         loadTemplates();
       } else {
-        toast.error(result.error || 'Failed to delete template');
+        toast.error(result.error || "Failed to delete template");
       }
     } catch (err) {
-      console.error('Failed to delete template:', err);
-      toast.error('Failed to delete template');
+      console.error("Failed to delete template:", err);
+      toast.error("Failed to delete template");
     }
   };
 
   const handleSaveTemplate = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const companyId = isSuperAdmin ? selectedCompanyId : user?.companyId;
-    
-    if (!companyId || companyId === 'all') {
-      toast.error('Please select a company');
+
+    if (!companyId || companyId === "all") {
+      toast.error("Please select a company");
       return;
     }
-    
+
     if (!templateForm.name.trim()) {
-      toast.error('Template name is required');
+      toast.error("Template name is required");
       return;
     }
-    
+
     setSavingChecklist(true);
     try {
       const templateData = {
@@ -432,7 +503,7 @@ export function DishesView() {
         items: templateItems.map((item, index) => ({
           name: item.name,
           description: item.description,
-          type: item.type as 'SCORE_1_5' | 'BOOLEAN' | 'NUMERIC' | 'TEXT',
+          type: item.type as "SCORE_1_5" | "BOOLEAN" | "NUMERIC" | "TEXT",
           isRequired: item.isRequired ?? true,
           weight: item.weight ?? 1.0,
           minValue: item.minValue,
@@ -444,7 +515,10 @@ export function DishesView() {
 
       let result;
       if (editingTemplate) {
-        result = await checklistTemplatesApi.update(editingTemplate.id, templateData);
+        result = await checklistTemplatesApi.update(
+          editingTemplate.id,
+          templateData,
+        );
       } else {
         result = await checklistTemplatesApi.create({
           companyId,
@@ -453,17 +527,19 @@ export function DishesView() {
       }
 
       if (result.success) {
-        toast.success(editingTemplate ? 'Template updated' : 'Template created');
+        toast.success(
+          editingTemplate ? "Template updated" : "Template created",
+        );
         setTemplateDialogOpen(false);
         setEditingTemplate(null);
         setTemplateItems([]);
         loadTemplates();
       } else {
-        toast.error(result.error || 'Failed to save template');
+        toast.error(result.error || "Failed to save template");
       }
     } catch (err) {
-      console.error('Failed to save template:', err);
-      toast.error('Failed to save template');
+      console.error("Failed to save template:", err);
+      toast.error("Failed to save template");
     } finally {
       setSavingChecklist(false);
     }
@@ -472,9 +548,9 @@ export function DishesView() {
   const handleAddTemplateItem = () => {
     setEditingTemplateItemIndex(null);
     setTemplateCriterionForm({
-      name: '',
-      description: '',
-      type: 'SCORE_1_5',
+      name: "",
+      description: "",
+      type: "SCORE_1_5",
       isRequired: true,
       weight: 1.0,
       minValue: null,
@@ -489,34 +565,46 @@ export function DishesView() {
     setEditingTemplateItemIndex(index);
     setTemplateCriterionForm({
       name: item.name,
-      description: item.description || '',
-      type: item.type as 'SCORE_1_5' | 'BOOLEAN' | 'NUMERIC' | 'TEXT',
+      description: item.description || "",
+      type: item.type as "SCORE_1_5" | "BOOLEAN" | "NUMERIC" | "TEXT",
       isRequired: item.isRequired,
-      weight: item.weight,
-      minValue: item.minValue,
-      maxValue: item.maxValue,
-      passingScore: item.passingScore,
+      weight: item.weight ?? null,
+      minValue: item.minValue ?? null,
+      maxValue: item.maxValue ?? null,
+      passingScore: item.passingScore ?? null,
     });
     setTemplateCriterionDialogOpen(true);
   };
 
   const handleSaveTemplateCriterion = () => {
     if (!templateCriterionForm.name.trim()) {
-      toast.error('Criterion name is required');
+      toast.error("Criterion name is required");
       return;
     }
 
     const newItem: ChecklistTemplateItem = {
-      id: editingTemplateItemIndex !== null ? templateItems[editingTemplateItemIndex].id : `temp-${Date.now()}`,
+      id:
+        editingTemplateItemIndex !== null
+          ? templateItems[editingTemplateItemIndex].id
+          : `temp-${Date.now()}`,
       name: templateCriterionForm.name.trim(),
       description: templateCriterionForm.description || null,
       type: templateCriterionForm.type,
       isRequired: templateCriterionForm.isRequired,
       weight: templateCriterionForm.weight,
-      minValue: templateCriterionForm.type === 'NUMERIC' ? templateCriterionForm.minValue : null,
-      maxValue: templateCriterionForm.type === 'NUMERIC' ? templateCriterionForm.maxValue : null,
+      minValue:
+        templateCriterionForm.type === "NUMERIC"
+          ? templateCriterionForm.minValue
+          : null,
+      maxValue:
+        templateCriterionForm.type === "NUMERIC"
+          ? templateCriterionForm.maxValue
+          : null,
       passingScore: templateCriterionForm.passingScore,
-      sortOrder: editingTemplateItemIndex !== null ? templateItems[editingTemplateItemIndex].sortOrder : templateItems.length,
+      sortOrder:
+        editingTemplateItemIndex !== null
+          ? templateItems[editingTemplateItemIndex].sortOrder
+          : templateItems.length,
     };
 
     if (editingTemplateItemIndex !== null) {
@@ -524,19 +612,19 @@ export function DishesView() {
       const newItems = [...templateItems];
       newItems[editingTemplateItemIndex] = newItem;
       setTemplateItems(newItems);
-      toast.success('Criterion updated');
+      toast.success("Criterion updated");
     } else {
       // Add new item
       setTemplateItems([...templateItems, newItem]);
-      toast.success('Criterion added');
+      toast.success("Criterion added");
     }
 
     setTemplateCriterionDialogOpen(false);
     setEditingTemplateItemIndex(null);
     setTemplateCriterionForm({
-      name: '',
-      description: '',
-      type: 'SCORE_1_5',
+      name: "",
+      description: "",
+      type: "SCORE_1_5",
       isRequired: true,
       weight: 1.0,
       minValue: null,
@@ -545,7 +633,11 @@ export function DishesView() {
     });
   };
 
-  const handleUpdateTemplateItem = (index: number, field: keyof ChecklistTemplateItem, value: any) => {
+  const handleUpdateTemplateItem = (
+    index: number,
+    field: keyof ChecklistTemplateItem,
+    value: any,
+  ) => {
     const newItems = [...templateItems];
     (newItems[index] as any)[field] = value;
     setTemplateItems(newItems);
@@ -572,7 +664,7 @@ export function DishesView() {
         setChecklistItems([]);
       }
     } catch (err) {
-      console.error('Failed to load checklist items:', err);
+      console.error("Failed to load checklist items:", err);
       setChecklistItems([]);
     } finally {
       setLoadingChecklist(false);
@@ -582,9 +674,9 @@ export function DishesView() {
   const handleAddChecklistItem = () => {
     setEditingItem(null);
     setTemplateItemForm({
-      name: '',
-      description: '',
-      type: 'SCORE_1_5',
+      name: "",
+      description: "",
+      type: "SCORE_1_5",
       isRequired: true,
       weight: 1.0,
       minValue: null,
@@ -598,33 +690,34 @@ export function DishesView() {
     setEditingItem(item);
     setTemplateItemForm({
       name: item.name,
-      description: item.description || '',
+      description: item.description || "",
       type: item.type,
       isRequired: item.isRequired,
-      weight: item.weight,
-      minValue: item.minValue,
-      maxValue: item.maxValue,
-      passingScore: item.passingScore,
+      weight: item.weight ?? null,
+      minValue: item.minValue ?? null,
+      maxValue: item.maxValue ?? null,
+      passingScore: item.passingScore ?? null,
     });
     setTemplateItemDialogOpen(true);
   };
 
   const handleDeleteChecklistItem = async (itemId: string) => {
-    if (!confirm('Are you sure you want to delete this checklist item?')) return;
-    
+    if (!confirm("Are you sure you want to delete this checklist item?"))
+      return;
+
     try {
       const result = await checklistsApi.delete(itemId);
       if (result.success) {
-        toast.success('Checklist item deleted');
+        toast.success("Checklist item deleted");
         if (selectedDish) {
           loadChecklistItems(selectedDish.id);
         }
       } else {
-        toast.error(result.error || 'Failed to delete checklist item');
+        toast.error(result.error || "Failed to delete checklist item");
       }
     } catch (err) {
-      console.error('Failed to delete checklist item:', err);
-      toast.error('Failed to delete checklist item');
+      console.error("Failed to delete checklist item:", err);
+      toast.error("Failed to delete checklist item");
     }
   };
 
@@ -638,11 +731,21 @@ export function DishesView() {
         dishId: selectedDish.id,
         name: templateItemForm.name,
         description: templateItemForm.description || undefined,
-        type: templateItemForm.type as 'SCORE_1_5' | 'BOOLEAN' | 'NUMERIC' | 'TEXT',
+        type: templateItemForm.type as
+          | "SCORE_1_5"
+          | "BOOLEAN"
+          | "NUMERIC"
+          | "TEXT",
         isRequired: templateItemForm.isRequired,
         weight: templateItemForm.weight,
-        minValue: templateItemForm.type === 'NUMERIC' ? templateItemForm.minValue : undefined,
-        maxValue: templateItemForm.type === 'NUMERIC' ? templateItemForm.maxValue : undefined,
+        minValue:
+          templateItemForm.type === "NUMERIC"
+            ? templateItemForm.minValue
+            : undefined,
+        maxValue:
+          templateItemForm.type === "NUMERIC"
+            ? templateItemForm.maxValue
+            : undefined,
         passingScore: templateItemForm.passingScore ?? null,
         sortOrder: editingItem ? editingItem.sortOrder : checklistItems.length,
       };
@@ -655,15 +758,17 @@ export function DishesView() {
       }
 
       if (result.success) {
-        toast.success(editingItem ? 'Checklist item updated' : 'Checklist item added');
+        toast.success(
+          editingItem ? "Checklist item updated" : "Checklist item added",
+        );
         setTemplateItemDialogOpen(false);
         loadChecklistItems(selectedDish.id);
       } else {
-        toast.error(result.error || 'Failed to save checklist item');
+        toast.error(result.error || "Failed to save checklist item");
       }
     } catch (err) {
-      console.error('Failed to save checklist item:', err);
-      toast.error('Failed to save checklist item');
+      console.error("Failed to save checklist item:", err);
+      toast.error("Failed to save checklist item");
     } finally {
       setSavingChecklist(false);
     }
@@ -672,36 +777,43 @@ export function DishesView() {
   // Apply template handlers
   const handleOpenApplyDialog = () => {
     if (isSuperAdmin && !selectedCompanyId) {
-      toast.error('Please select a company first');
+      toast.error("Please select a company first");
       return;
     }
-    setSelectedDishesForTemplate(filteredDishes.filter(d => (d._count?.checklistItems || 0) === 0));
+    setSelectedDishesForTemplate(
+      filteredDishes.filter((d) => (d._count?.checklistItems || 0) === 0),
+    );
     setApplyTemplateOpen(true);
   };
 
   const handleApplyTemplateToDishes = async () => {
     if (!selectedTemplate || selectedDishesForTemplate.length === 0) {
-      toast.error('Please select a template and at least one dish');
+      toast.error("Please select a template and at least one dish");
       return;
     }
 
     setSavingApply(true);
     try {
       const templateId = selectedTemplate.id;
-      const dishIds = selectedDishesForTemplate.map(d => d.id);
+      const dishIds = selectedDishesForTemplate.map((d) => d.id);
 
-      const result = await checklistTemplatesApi.applyToDishes(templateId, dishIds);
+      const result = await checklistTemplatesApi.applyToDishes(
+        templateId,
+        dishIds,
+      );
       if (result.success) {
-        toast.success(`Template applied to ${dishIds.length} dishes successfully`);
+        toast.success(
+          `Template applied to ${dishIds.length} dishes successfully`,
+        );
         setApplyTemplateOpen(false);
         setSelectedDishesForTemplate([]);
         loadData();
       } else {
-        toast.error(result.error || 'Failed to apply template');
+        toast.error(result.error || "Failed to apply template");
       }
     } catch (err) {
-      console.error('Failed to apply template:', err);
-      toast.error('Failed to apply template');
+      console.error("Failed to apply template:", err);
+      toast.error("Failed to apply template");
     } finally {
       setSavingApply(false);
     }
@@ -710,76 +822,95 @@ export function DishesView() {
   // Copy from dish handlers
   const handleOpenCopyDialog = () => {
     setCopySourceDish(null);
-    setCopySearchValue('');
+    setCopySearchValue("");
     setCopyDialogOpen(true);
   };
 
   const handleCopyFromDish = async () => {
     if (!copySourceDish || !selectedDish) {
-      toast.error('Please select a source dish');
+      toast.error("Please select a source dish");
       return;
     }
 
     setSavingChecklist(true);
     try {
       const result = await checklistsApi.list(copySourceDish.id);
-      
+
       if (!result.success || !result.data) {
-        toast.error('Failed to fetch checklist items from source dish');
-        setSavingChecklist(false);
-        return;
-      }
-      
-      if (result.data.length === 0) {
-        toast.error('Source dish has no checklist items to copy');
+        toast.error("Failed to fetch checklist items from source dish");
         setSavingChecklist(false);
         return;
       }
 
-      const createPromises = result.data.map((item: ChecklistItem, index: number) => {
-        const data: any = {
-          dishId: selectedDish.id,
-          name: item.name,
-          description: item.description || undefined,
-          type: item.type,
-          isRequired: item.isRequired ?? true,
-          weight: item.weight ?? 1.0,
-          sortOrder: index,
-        };
-        
-        // Only include minValue/maxValue for NUMERIC type
-        if (item.type === 'NUMERIC') {
-          data.minValue = item.minValue;
-          data.maxValue = item.maxValue;
-        }
-        
-        // Only include passingScore if it exists
-        if (item.passingScore !== null && item.passingScore !== undefined) {
-          data.passingScore = item.passingScore;
-        }
-        
-        return checklistsApi.create(data);
-      });
+      // Store result.data in a local variable with non-null assertion since we've checked it above
+      const sourceItems = result.data!;
+
+      if (sourceItems.length === 0) {
+        toast.error("Source dish has no checklist items to copy");
+        setSavingChecklist(false);
+        return;
+      }
+
+      const createPromises = sourceItems.map(
+        (item: ChecklistItem, index: number) => {
+          const data: any = {
+            dishId: selectedDish.id,
+            name: item.name,
+            description: item.description || undefined,
+            type: item.type,
+            isRequired: item.isRequired ?? true,
+            weight: item.weight ?? 1.0,
+            sortOrder: index,
+          };
+
+          // Only include minValue/maxValue for NUMERIC type
+          if (item.type === "NUMERIC") {
+            data.minValue = item.minValue ?? null;
+            data.maxValue = item.maxValue ?? null;
+          }
+
+          // Only include passingScore if it exists
+          if (item.passingScore !== null && item.passingScore !== undefined) {
+            data.passingScore = item.passingScore;
+          }
+
+          return checklistsApi.create(data);
+        },
+      );
 
       const results = await Promise.all(createPromises);
-      const failedItems = results.map((r, i) => ({ result: r, index: i })).filter(r => !r.result.success);
-      
+      const failedItems = results
+        .map((r, i) => ({ result: r, index: i }))
+        .filter((r) => !r.result.success);
+
       if (failedItems.length > 0) {
-        const failedNames = failedItems.map(f => result.data[f.index]?.name || 'Unknown').join(', ');
-        toast.warning(`Copied ${result.data.length - failedItems.length} of ${result.data.length} criteria. Failed: ${failedNames}`);
-        console.error('Failed items:', failedItems.map(f => ({ name: result.data[f.index]?.name, error: f.result.error })));
+        const failedNames = failedItems
+          .map((f) => sourceItems[f.index]?.name || "Unknown")
+          .join(", ");
+        toast.warning(
+          `Copied ${sourceItems.length - failedItems.length} of ${sourceItems.length} criteria. Failed: ${failedNames}`,
+        );
+        console.error(
+          "Failed items:",
+          failedItems.map((f) => ({
+            name: sourceItems[f.index]?.name,
+            error: f.result.error,
+          })),
+        );
       } else {
-        toast.success(`Copied ${result.data.length} criteria from ${copySourceDish.name}`);
+        toast.success(
+          `Copied ${sourceItems.length} criteria from ${copySourceDish.name}`,
+        );
       }
-      
+
       setCopyDialogOpen(false);
       setCopySourceDish(null);
       // Refresh both checklist items and dishes list
       await loadChecklistItems(selectedDish.id);
       await loadData();
     } catch (err) {
-      console.error('Failed to copy checklist:', err);
-      toast.error('Failed to copy checklist items');
+      console.error("Failed to copy checklist:", err);
+      toast.error("Failed to copy checklist items");
     } finally {
       setSavingChecklist(false);
     }
@@ -788,17 +919,17 @@ export function DishesView() {
   // Push to dishes handlers
   const handleOpenPushDialog = () => {
     if (checklistItems.length === 0) {
-      toast.error('No criteria to push. Add criteria first.');
+      toast.error("No criteria to push. Add criteria first.");
       return;
     }
     setPushTargetDishes([]);
-    setPushSearchValue('');
+    setPushSearchValue("");
     setPushDialogOpen(true);
   };
 
   const handlePushToDishes = async () => {
     if (!selectedDish || pushTargetDishes.length === 0) {
-      toast.error('Please select at least one target dish');
+      toast.error("Please select at least one target dish");
       return;
     }
 
@@ -810,7 +941,10 @@ export function DishesView() {
       for (const targetDish of pushTargetDishes) {
         // First get existing items for this dish
         const existingResult = await checklistsApi.list(targetDish.id);
-        const existingCount = existingResult.success && existingResult.data ? existingResult.data.length : 0;
+        const existingCount =
+          existingResult.success && existingResult.data
+            ? existingResult.data.length
+            : 0;
 
         // Create all checklist items for target dish
         const createPromises = checklistItems.map((item, index) => {
@@ -823,22 +957,22 @@ export function DishesView() {
             weight: item.weight ?? 1.0,
             sortOrder: existingCount + index,
           };
-          
-          if (item.type === 'NUMERIC') {
-            data.minValue = item.minValue;
-            data.maxValue = item.maxValue;
+
+          if (item.type === "NUMERIC") {
+            data.minValue = item.minValue ?? null;
+            data.maxValue = item.maxValue ?? null;
           }
-          
+
           if (item.passingScore !== null && item.passingScore !== undefined) {
             data.passingScore = item.passingScore;
           }
-          
+
           return checklistsApi.create(data);
         });
 
         const results = await Promise.all(createPromises);
-        const failed = results.filter(r => !r.success).length;
-        
+        const failed = results.filter((r) => !r.success).length;
+
         if (failed === 0) {
           successCount++;
         } else {
@@ -847,17 +981,21 @@ export function DishesView() {
       }
 
       if (failCount === 0) {
-        toast.success(`Pushed ${checklistItems.length} criteria to ${successCount} dishes successfully`);
+        toast.success(
+          `Pushed ${checklistItems.length} criteria to ${successCount} dishes successfully`,
+        );
       } else {
-        toast.warning(`Pushed to ${successCount} dishes. Failed for ${failCount} dishes.`);
+        toast.warning(
+          `Pushed to ${successCount} dishes. Failed for ${failCount} dishes.`,
+        );
       }
-      
+
       setPushDialogOpen(false);
       setPushTargetDishes([]);
       await loadData();
     } catch (err) {
-      console.error('Failed to push criteria:', err);
-      toast.error('Failed to push criteria to dishes');
+      console.error("Failed to push criteria:", err);
+      toast.error("Failed to push criteria to dishes");
     } finally {
       setSavingChecklist(false);
     }
@@ -865,11 +1003,16 @@ export function DishesView() {
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'SCORE_1_5': return 'Score (1-5)';
-      case 'BOOLEAN': return 'Yes/No';
-      case 'NUMERIC': return 'Numeric';
-      case 'TEXT': return 'Text';
-      default: return type;
+      case "SCORE_1_5":
+        return "Score (1-5)";
+      case "BOOLEAN":
+        return "Yes/No";
+      case "NUMERIC":
+        return "Numeric";
+      case "TEXT":
+        return "Text";
+      default:
+        return type;
     }
   };
 
@@ -892,30 +1035,44 @@ export function DishesView() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Dishes</h1>
-          <p className="text-muted-foreground">Manage your menu items and quality criteria</p>
+          <p className="text-muted-foreground">
+            Manage your menu items and quality criteria
+          </p>
         </div>
         <div className="flex gap-2">
           {canCreate && (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button onClick={() => {
-                  setEditingDish(null);
-                  setFormData({ name: '', description: '', categoryId: '', sku: '', prepTime: '' });
-                  setFormTemplateId('__none__');
-                  if (!isSuperAdmin && user?.companyId) {
-                    setFormCompanyId(user.companyId);
-                  } else {
-                    setFormCompanyId(selectedCompanyId || '');
-                  }
-                }}>
+                <Button
+                  onClick={() => {
+                    setEditingDish(null);
+                    setFormData({
+                      name: "",
+                      description: "",
+                      categoryId: "",
+                      sku: "",
+                      prepTime: "",
+                    });
+                    setFormTemplateId("__none__");
+                    if (!isSuperAdmin && user?.companyId) {
+                      setFormCompanyId(user.companyId);
+                    } else {
+                      setFormCompanyId(selectedCompanyId || "");
+                    }
+                  }}
+                >
                   <Plus className="mr-2 h-4 w-4" /> Add Dish
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>{editingDish ? 'Edit Dish' : 'Add New Dish'}</DialogTitle>
+                  <DialogTitle>
+                    {editingDish ? "Edit Dish" : "Add New Dish"}
+                  </DialogTitle>
                   <DialogDescription>
-                    {editingDish ? 'Update the dish information.' : 'Add a new dish to your menu.'}
+                    {editingDish
+                      ? "Update the dish information."
+                      : "Add a new dish to your menu."}
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -926,7 +1083,7 @@ export function DishesView() {
                         value={formCompanyId}
                         onValueChange={(v) => {
                           setFormCompanyId(v);
-                          setFormData({ ...formData, categoryId: '' });
+                          setFormData({ ...formData, categoryId: "" });
                           loadCategories(v);
                         }}
                       >
@@ -948,7 +1105,9 @@ export function DishesView() {
                     <Input
                       id="name"
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
                       required
                     />
                   </div>
@@ -956,11 +1115,19 @@ export function DishesView() {
                     <Label htmlFor="category">Category</Label>
                     <Select
                       value={formData.categoryId}
-                      onValueChange={(v) => setFormData({ ...formData, categoryId: v })}
+                      onValueChange={(v) =>
+                        setFormData({ ...formData, categoryId: v })
+                      }
                       disabled={isSuperAdmin && !formCompanyId}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={categories.length === 0 ? "No categories available" : "Select category"} />
+                        <SelectValue
+                          placeholder={
+                            categories.length === 0
+                              ? "No categories available"
+                              : "Select category"
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map((cat) => (
@@ -982,7 +1149,9 @@ export function DishesView() {
                       <Input
                         id="sku"
                         value={formData.sku}
-                        onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, sku: e.target.value })
+                        }
                       />
                     </div>
                     <div className="space-y-2">
@@ -991,7 +1160,9 @@ export function DishesView() {
                         id="prepTime"
                         type="number"
                         value={formData.prepTime}
-                        onChange={(e) => setFormData({ ...formData, prepTime: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, prepTime: e.target.value })
+                        }
                       />
                     </div>
                   </div>
@@ -1000,14 +1171,21 @@ export function DishesView() {
                     <Textarea
                       id="description"
                       value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          description: e.target.value,
+                        })
+                      }
                     />
                   </div>
-                  
+
                   {/* Template selector - only for new dishes */}
                   {!editingDish && templates.length > 0 && (
                     <div className="space-y-2">
-                      <Label htmlFor="template">Apply Quality Template (Optional)</Label>
+                      <Label htmlFor="template">
+                        Apply Quality Template (Optional)
+                      </Label>
                       <Select
                         value={formTemplateId}
                         onValueChange={setFormTemplateId}
@@ -1019,24 +1197,32 @@ export function DishesView() {
                           <SelectItem value="__none__">None</SelectItem>
                           {templates.map((template) => (
                             <SelectItem key={template.id} value={template.id}>
-                              {template.name} ({template.items?.length || 0} criteria)
+                              {template.name} ({template.items?.length || 0}{" "}
+                              criteria)
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground">
-                        Templates let you quickly add quality criteria to new dishes
+                        Templates let you quickly add quality criteria to new
+                        dishes
                       </p>
                     </div>
                   )}
-                  
+
                   <div className="flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setDialogOpen(false)}
+                    >
                       Cancel
                     </Button>
                     <Button type="submit" disabled={saving}>
-                      {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                      {editingDish ? 'Update' : 'Create'}
+                      {saving ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : null}
+                      {editingDish ? "Update" : "Create"}
                     </Button>
                   </div>
                 </form>
@@ -1058,7 +1244,10 @@ export function DishesView() {
                   Select a company to view and manage its dishes
                 </p>
               </div>
-              <Select value={selectedCompanyId || 'all'} onValueChange={setSelectedCompanyId}>
+              <Select
+                value={selectedCompanyId || "all"}
+                onValueChange={setSelectedCompanyId}
+              >
                 <SelectTrigger className="w-64">
                   <SelectValue placeholder="Select a company" />
                 </SelectTrigger>
@@ -1087,7 +1276,10 @@ export function DishesView() {
           </CardHeader>
           <CardContent className="py-2">
             {templates.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No templates created yet. Create templates to quickly apply criteria to multiple dishes.</p>
+              <p className="text-sm text-muted-foreground">
+                No templates created yet. Create templates to quickly apply
+                criteria to multiple dishes.
+              </p>
             ) : (
               <div className="flex flex-wrap gap-2 mb-3">
                 {templates.map((template) => (
@@ -1126,7 +1318,9 @@ export function DishesView() {
               <div className="flex items-center gap-2">
                 <Settings className="h-5 w-5 text-emerald-600" />
                 <div>
-                  <Label className="text-sm font-medium">Quick Apply Template</Label>
+                  <Label className="text-sm font-medium">
+                    Quick Apply Template
+                  </Label>
                   <p className="text-xs text-muted-foreground">
                     Apply a template to dishes without criteria
                   </p>
@@ -1134,8 +1328,12 @@ export function DishesView() {
               </div>
               <div className="flex items-center gap-2">
                 <Select
-                  value={selectedTemplate?.id || ''}
-                  onValueChange={(v) => setSelectedTemplate(templates.find(t => t.id === v) || null)}
+                  value={selectedTemplate?.id || ""}
+                  onValueChange={(v) =>
+                    setSelectedTemplate(
+                      templates.find((t) => t.id === v) || null,
+                    )
+                  }
                 >
                   <SelectTrigger className="w-48">
                     <SelectValue placeholder="Select template" />
@@ -1177,7 +1375,8 @@ export function DishesView() {
         <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-950/20">
           <CardContent className="py-4">
             <p className="text-sm text-yellow-800 dark:text-yellow-200">
-              No categories found. Please create categories first before adding dishes.
+              No categories found. Please create categories first before adding
+              dishes.
             </p>
           </CardContent>
         </Card>
@@ -1189,43 +1388,57 @@ export function DishesView() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                {user?.role === 'SUPER_ADMIN' && <TableHead>Company</TableHead>}
+                {user?.role === "SUPER_ADMIN" && <TableHead>Company</TableHead>}
                 <TableHead>Category</TableHead>
                 <TableHead>SKU</TableHead>
                 <TableHead>Prep Time</TableHead>
                 <TableHead>Criteria</TableHead>
                 <TableHead>Status</TableHead>
-                {canCreate && <TableHead className="text-right">Actions</TableHead>}
+                {canCreate && (
+                  <TableHead className="text-right">Actions</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredDishes.map((dish) => (
                 <TableRow key={dish.id}>
                   <TableCell className="font-medium">{dish.name}</TableCell>
-                  {user?.role === 'SUPER_ADMIN' && (
+                  {user?.role === "SUPER_ADMIN" && (
                     <TableCell>
-                      {companies.find(c => c.id === dish.companyId)?.name || '-'}
+                      {companies.find((c) => c.id === dish.companyId)?.name ||
+                        "-"}
                     </TableCell>
                   )}
                   <TableCell>
                     {dish.category ? (
-                      <Badge style={{ backgroundColor: dish.category.color + '20', color: dish.category.color }}>
+                      <Badge
+                        style={{
+                          backgroundColor: dish.category.color + "20",
+                          color: dish.category.color,
+                        }}
+                      >
                         {dish.category.name}
                       </Badge>
                     ) : (
-                      '-'
+                      "-"
                     )}
                   </TableCell>
-                  <TableCell>{dish.sku || '-'}</TableCell>
-                  <TableCell>{dish.prepTime ? `${dish.prepTime} min` : '-'}</TableCell>
+                  <TableCell>{dish.sku || "-"}</TableCell>
                   <TableCell>
-                    <Badge variant={dish._count?.checklistItems ? 'default' : 'secondary'}>
+                    {dish.prepTime ? `${dish.prepTime} min` : "-"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        dish._count?.checklistItems ? "default" : "secondary"
+                      }
+                    >
                       {dish._count?.checklistItems || 0} items
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={dish.isActive ? 'default' : 'secondary'}>
-                      {dish.isActive ? 'Active' : 'Inactive'}
+                    <Badge variant={dish.isActive ? "default" : "secondary"}>
+                      {dish.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
                   {canCreate && (
@@ -1238,10 +1451,18 @@ export function DishesView() {
                       >
                         <ListChecks className="h-4 w-4 text-emerald-600" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(dish)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(dish)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(dish.id)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(dish.id)}
+                      >
                         <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>
                     </TableCell>
@@ -1262,7 +1483,8 @@ export function DishesView() {
               Quality Criteria for: {selectedDish?.name}
             </DialogTitle>
             <DialogDescription>
-              Define the quality evaluation criteria for this dish. These will be used in quality reports.
+              Define the quality evaluation criteria for this dish. These will
+              be used in quality reports.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -1271,10 +1493,19 @@ export function DishesView() {
                 {checklistItems.length} criteria configured
               </p>
               <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={handleOpenCopyDialog}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleOpenCopyDialog}
+                >
                   <Copy className="mr-2 h-4 w-4" /> Copy from Dish
                 </Button>
-                <Button variant="outline" size="sm" onClick={handleOpenPushDialog} disabled={checklistItems.length === 0}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleOpenPushDialog}
+                  disabled={checklistItems.length === 0}
+                >
                   <ArrowRightFromLine className="mr-2 h-4 w-4" /> Push to Dishes
                 </Button>
                 <Button size="sm" onClick={handleAddChecklistItem}>
@@ -1311,7 +1542,9 @@ export function DishesView() {
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <GripVertical className="h-4 w-4" />
-                            <span className="text-sm font-medium">{index + 1}</span>
+                            <span className="text-sm font-medium">
+                              {index + 1}
+                            </span>
                           </div>
                           <div>
                             <p className="font-medium">{item.name}</p>
@@ -1320,7 +1553,10 @@ export function DishesView() {
                                 {getTypeLabel(item.type)}
                               </Badge>
                               {item.isRequired && (
-                                <Badge variant="outline" className="text-xs bg-red-50 text-red-700">
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs bg-red-50 text-red-700"
+                                >
                                   Required
                                 </Badge>
                               )}
@@ -1333,11 +1569,21 @@ export function DishesView() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">Weight: {item.weight}</span>
-                          <Button variant="ghost" size="icon" onClick={() => handleEditChecklistItem(item)}>
+                          <span className="text-xs text-muted-foreground">
+                            Weight: {item.weight}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditChecklistItem(item)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteChecklistItem(item.id)}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteChecklistItem(item.id)}
+                          >
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
                         </div>
@@ -1357,36 +1603,60 @@ export function DishesView() {
           <DialogHeader>
             <DialogTitle>Apply Template to Dishes</DialogTitle>
             <DialogDescription>
-              This will add the template criteria to selected dishes. Existing criteria will be kept.
+              This will add the template criteria to selected dishes. Existing
+              criteria will be kept.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Template: {selectedTemplate?.name}</Label>
               <p className="text-sm text-muted-foreground">
-                {selectedTemplate?.items?.length || 0} criteria will be added to each dish
+                {selectedTemplate?.items?.length || 0} criteria will be added to
+                each dish
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label>Select dishes to apply ({filteredDishes.filter(d => (d._count?.checklistItems || 0) === 0).length} dishes without criteria)</Label>
+              <Label>
+                Select dishes to apply (
+                {
+                  filteredDishes.filter(
+                    (d) => (d._count?.checklistItems || 0) === 0,
+                  ).length
+                }{" "}
+                dishes without criteria)
+              </Label>
               <div className="max-h-60 overflow-y-auto border rounded-md p-2 space-y-2">
-                {filteredDishes.filter(d => (d._count?.checklistItems || 0) === 0).map((dish) => (
-                  <label key={dish.id} className="flex items-center gap-2 cursor-pointer">
-                    <Checkbox
-                      checked={selectedDishesForTemplate.includes(dish)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedDishesForTemplate([...selectedDishesForTemplate, dish]);
-                        } else {
-                          setSelectedDishesForTemplate(selectedDishesForTemplate.filter(d => d.id !== dish.id));
-                        }
-                      }}
-                    />
-                    <span className="text-sm">{dish.name}</span>
-                  </label>
-                ))}
-                {filteredDishes.filter(d => (d._count?.checklistItems || 0) === 0).length === 0 && (
+                {filteredDishes
+                  .filter((d) => (d._count?.checklistItems || 0) === 0)
+                  .map((dish) => (
+                    <label
+                      key={dish.id}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <Checkbox
+                        checked={selectedDishesForTemplate.includes(dish)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedDishesForTemplate([
+                              ...selectedDishesForTemplate,
+                              dish,
+                            ]);
+                          } else {
+                            setSelectedDishesForTemplate(
+                              selectedDishesForTemplate.filter(
+                                (d) => d.id !== dish.id,
+                              ),
+                            );
+                          }
+                        }}
+                      />
+                      <span className="text-sm">{dish.name}</span>
+                    </label>
+                  ))}
+                {filteredDishes.filter(
+                  (d) => (d._count?.checklistItems || 0) === 0,
+                ).length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">
                     All dishes already have criteria configured
                   </p>
@@ -1395,14 +1665,23 @@ export function DishesView() {
             </div>
 
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setApplyTemplateOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setApplyTemplateOpen(false)}
+              >
                 Cancel
               </Button>
               <Button
                 onClick={handleApplyTemplateToDishes}
-                disabled={!selectedTemplate || selectedDishesForTemplate.length === 0 || savingApply}
+                disabled={
+                  !selectedTemplate ||
+                  selectedDishesForTemplate.length === 0 ||
+                  savingApply
+                }
               >
-                {savingApply ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {savingApply ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
                 Apply Template ({selectedDishesForTemplate.length} dishes)
               </Button>
             </div>
@@ -1416,7 +1695,8 @@ export function DishesView() {
           <DialogHeader>
             <DialogTitle>Copy Criteria from Another Dish</DialogTitle>
             <DialogDescription>
-              Select a dish to copy its quality criteria to &quot;{selectedDish?.name}&quot;
+              Select a dish to copy its quality criteria to &quot;
+              {selectedDish?.name}&quot;
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -1430,25 +1710,32 @@ export function DishesView() {
                     aria-expanded={copySearchOpen}
                     className="w-full justify-between"
                   >
-                    {copySourceDish ? `${copySourceDish.name} (${copySourceDish._count?.checklistItems || 0} items)` : 'Select source dish...'}
+                    {copySourceDish
+                      ? `${copySourceDish.name} (${copySourceDish._count?.checklistItems || 0} items)`
+                      : "Select source dish..."}
                     <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0" align="start">
                   <Command>
-                    <CommandInput 
-                      placeholder="Search dishes..." 
+                    <CommandInput
+                      placeholder="Search dishes..."
                       value={copySearchValue}
                       onValueChange={setCopySearchValue}
                     />
                     <CommandList>
-                      <CommandEmpty>No dishes found with criteria.</CommandEmpty>
+                      <CommandEmpty>
+                        No dishes found with criteria.
+                      </CommandEmpty>
                       <CommandGroup>
                         {dishes
-                          .filter(d => 
-                            d.id !== selectedDish?.id && 
-                            (d._count?.checklistItems || 0) > 0 &&
-                            d.name.toLowerCase().includes(copySearchValue.toLowerCase())
+                          .filter(
+                            (d) =>
+                              d.id !== selectedDish?.id &&
+                              (d._count?.checklistItems || 0) > 0 &&
+                              d.name
+                                .toLowerCase()
+                                .includes(copySearchValue.toLowerCase()),
                           )
                           .map((dish) => (
                             <CommandItem
@@ -1462,7 +1749,9 @@ export function DishesView() {
                               <Check
                                 className={cn(
                                   "mr-2 h-4 w-4",
-                                  copySourceDish?.id === dish.id ? "opacity-100" : "opacity-0"
+                                  copySourceDish?.id === dish.id
+                                    ? "opacity-100"
+                                    : "opacity-0",
                                 )}
                               />
                               <div className="flex items-center justify-between w-full">
@@ -1484,21 +1773,30 @@ export function DishesView() {
               <Card className="bg-muted/50">
                 <CardContent className="py-3">
                   <p className="text-sm text-muted-foreground">
-                    Will copy <strong>{copySourceDish._count?.checklistItems || 0}</strong> quality criteria from <strong>{copySourceDish.name}</strong>
+                    Will copy{" "}
+                    <strong>
+                      {copySourceDish._count?.checklistItems || 0}
+                    </strong>{" "}
+                    quality criteria from <strong>{copySourceDish.name}</strong>
                   </p>
                 </CardContent>
               </Card>
             )}
 
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setCopyDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setCopyDialogOpen(false)}
+              >
                 Cancel
               </Button>
               <Button
                 onClick={handleCopyFromDish}
                 disabled={!copySourceDish || savingChecklist}
               >
-                {savingChecklist ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {savingChecklist ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
                 Copy Criteria
               </Button>
             </div>
@@ -1512,8 +1810,9 @@ export function DishesView() {
           <DialogHeader>
             <DialogTitle>Push Criteria to Other Dishes</DialogTitle>
             <DialogDescription>
-              Push {checklistItems.length} criteria from &quot;{selectedDish?.name}&quot; to selected dishes. 
-              Existing criteria on target dishes will be preserved.
+              Push {checklistItems.length} criteria from &quot;
+              {selectedDish?.name}&quot; to selected dishes. Existing criteria
+              on target dishes will be preserved.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -1529,9 +1828,12 @@ export function DishesView() {
             <div className="border rounded-md max-h-60 overflow-y-auto">
               <div className="p-2 space-y-1">
                 {filteredDishes
-                  .filter(d => 
-                    d.id !== selectedDish?.id &&
-                    d.name.toLowerCase().includes(pushSearchValue.toLowerCase())
+                  .filter(
+                    (d) =>
+                      d.id !== selectedDish?.id &&
+                      d.name
+                        .toLowerCase()
+                        .includes(pushSearchValue.toLowerCase()),
                   )
                   .map((dish) => (
                     <label
@@ -1544,23 +1846,31 @@ export function DishesView() {
                           if (checked) {
                             setPushTargetDishes([...pushTargetDishes, dish]);
                           } else {
-                            setPushTargetDishes(pushTargetDishes.filter(d => d.id !== dish.id));
+                            setPushTargetDishes(
+                              pushTargetDishes.filter((d) => d.id !== dish.id),
+                            );
                           }
                         }}
                       />
                       <div className="flex-1">
                         <p className="font-medium">{dish.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {dish.category?.name || 'No category'} • {dish._count?.checklistItems || 0} existing criteria
+                          {dish.category?.name || "No category"} •{" "}
+                          {dish._count?.checklistItems || 0} existing criteria
                         </p>
                       </div>
                     </label>
                   ))}
-                {filteredDishes.filter(d => 
-                  d.id !== selectedDish?.id &&
-                  d.name.toLowerCase().includes(pushSearchValue.toLowerCase())
+                {filteredDishes.filter(
+                  (d) =>
+                    d.id !== selectedDish?.id &&
+                    d.name
+                      .toLowerCase()
+                      .includes(pushSearchValue.toLowerCase()),
                 ).length === 0 && (
-                  <p className="text-center text-muted-foreground py-4">No dishes found</p>
+                  <p className="text-center text-muted-foreground py-4">
+                    No dishes found
+                  </p>
                 )}
               </div>
             </div>
@@ -1569,14 +1879,19 @@ export function DishesView() {
               <Card className="bg-muted/50">
                 <CardContent className="py-3">
                   <p className="text-sm text-muted-foreground">
-                    Will push <strong>{checklistItems.length}</strong> criteria to <strong>{pushTargetDishes.length}</strong> dishes
+                    Will push <strong>{checklistItems.length}</strong> criteria
+                    to <strong>{pushTargetDishes.length}</strong> dishes
                   </p>
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {pushTargetDishes.slice(0, 5).map(d => (
-                      <Badge key={d.id} variant="secondary" className="text-xs">{d.name}</Badge>
+                    {pushTargetDishes.slice(0, 5).map((d) => (
+                      <Badge key={d.id} variant="secondary" className="text-xs">
+                        {d.name}
+                      </Badge>
                     ))}
                     {pushTargetDishes.length > 5 && (
-                      <Badge variant="secondary" className="text-xs">+{pushTargetDishes.length - 5} more</Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        +{pushTargetDishes.length - 5} more
+                      </Badge>
                     )}
                   </div>
                 </CardContent>
@@ -1584,14 +1899,19 @@ export function DishesView() {
             )}
 
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setPushDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setPushDialogOpen(false)}
+              >
                 Cancel
               </Button>
               <Button
                 onClick={handlePushToDishes}
                 disabled={pushTargetDishes.length === 0 || savingChecklist}
               >
-                {savingChecklist ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {savingChecklist ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
                 Push to {pushTargetDishes.length} Dishes
               </Button>
             </div>
@@ -1605,10 +1925,13 @@ export function DishesView() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Copy className="h-5 w-5 text-emerald-600" />
-              {editingTemplate ? 'Edit Template' : 'Create Quality Criteria Template'}
+              {editingTemplate
+                ? "Edit Template"
+                : "Create Quality Criteria Template"}
             </DialogTitle>
             <DialogDescription>
-              Create reusable templates to quickly apply criteria to multiple dishes
+              Create reusable templates to quickly apply criteria to multiple
+              dishes
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSaveTemplate} className="space-y-4">
@@ -1617,7 +1940,9 @@ export function DishesView() {
               <Input
                 id="templateName"
                 value={templateForm.name}
-                onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })}
+                onChange={(e) =>
+                  setTemplateForm({ ...templateForm, name: e.target.value })
+                }
                 placeholder="e.g., General Quality, Fast Food Standards"
                 required
               />
@@ -1628,7 +1953,12 @@ export function DishesView() {
               <Textarea
                 id="templateDescription"
                 value={templateForm.description}
-                onChange={(e) => setTemplateForm({ ...templateForm, description: e.target.value })}
+                onChange={(e) =>
+                  setTemplateForm({
+                    ...templateForm,
+                    description: e.target.value,
+                  })
+                }
                 placeholder="Optional description"
                 rows={2}
               />
@@ -1667,7 +1997,9 @@ export function DishesView() {
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <GripVertical className="h-4 w-4" />
-                            <span className="text-sm font-medium">{index + 1}</span>
+                            <span className="text-sm font-medium">
+                              {index + 1}
+                            </span>
                           </div>
                           <div>
                             <p className="font-medium">{item.name}</p>
@@ -1676,7 +2008,10 @@ export function DishesView() {
                                 {getTypeLabel(item.type)}
                               </Badge>
                               {item.isRequired && (
-                                <Badge variant="outline" className="text-xs bg-red-50 text-red-700">
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs bg-red-50 text-red-700"
+                                >
                                   Required
                                 </Badge>
                               )}
@@ -1689,18 +2024,20 @@ export function DishesView() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">Weight: {item.weight}</span>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <span className="text-xs text-muted-foreground">
+                            Weight: {item.weight}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             type="button"
                             onClick={() => handleEditTemplateItem(index)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             type="button"
                             onClick={() => handleRemoveTemplateItem(index)}
                           >
@@ -1715,12 +2052,21 @@ export function DishesView() {
             )}
 
             <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => setTemplateDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setTemplateDialogOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button type="submit" disabled={savingChecklist || !templateForm.name.trim()}>
-                {savingChecklist ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {editingTemplate ? 'Update' : 'Create'} Template
+              <Button
+                type="submit"
+                disabled={savingChecklist || !templateForm.name.trim()}
+              >
+                {savingChecklist ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                {editingTemplate ? "Update" : "Create"} Template
               </Button>
             </div>
           </form>
@@ -1728,10 +2074,15 @@ export function DishesView() {
       </Dialog>
 
       {/* Add/Edit Checklist Item Dialog */}
-      <Dialog open={templateItemDialogOpen} onOpenChange={setTemplateItemDialogOpen}>
+      <Dialog
+        open={templateItemDialogOpen}
+        onOpenChange={setTemplateItemDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingItem ? 'Edit Criterion' : 'Add New Criterion'}</DialogTitle>
+            <DialogTitle>
+              {editingItem ? "Edit Criterion" : "Add New Criterion"}
+            </DialogTitle>
             <DialogDescription>
               Define a quality evaluation criterion for this dish.
             </DialogDescription>
@@ -1742,7 +2093,12 @@ export function DishesView() {
               <Input
                 id="itemName"
                 value={templateItemForm.name}
-                onChange={(e) => setTemplateItemForm({ ...templateItemForm, name: e.target.value })}
+                onChange={(e) =>
+                  setTemplateItemForm({
+                    ...templateItemForm,
+                    name: e.target.value,
+                  })
+                }
                 placeholder="e.g., Presentation, Temperature, Taste"
                 required
               />
@@ -1753,7 +2109,12 @@ export function DishesView() {
               <Textarea
                 id="itemDescription"
                 value={templateItemForm.description}
-                onChange={(e) => setTemplateItemForm({ ...templateItemForm, description: e.target.value })}
+                onChange={(e) =>
+                  setTemplateItemForm({
+                    ...templateItemForm,
+                    description: e.target.value,
+                  })
+                }
                 placeholder="Optional description of this criterion"
                 rows={2}
               />
@@ -1763,29 +2124,40 @@ export function DishesView() {
               <Label htmlFor="itemType">Evaluation Type *</Label>
               <Select
                 value={templateItemForm.type}
-                onValueChange={(v) => setTemplateItemForm({ ...templateItemForm, type: v })}
+                onValueChange={(v) =>
+                  setTemplateItemForm({ ...templateItemForm, type: v })
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="SCORE_1_5">Score (1-5) - Rating scale</SelectItem>
+                  <SelectItem value="SCORE_1_5">
+                    Score (1-5) - Rating scale
+                  </SelectItem>
                   <SelectItem value="BOOLEAN">Yes/No - Pass or fail</SelectItem>
-                  <SelectItem value="NUMERIC">Numeric - Custom range</SelectItem>
+                  <SelectItem value="NUMERIC">
+                    Numeric - Custom range
+                  </SelectItem>
                   <SelectItem value="TEXT">Text - Written feedback</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {templateItemForm.type === 'NUMERIC' && (
+            {templateItemForm.type === "NUMERIC" && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="minValue">Minimum Value</Label>
                   <Input
                     id="minValue"
                     type="number"
-                    value={templateItemForm.minValue || ''}
-                    onChange={(e) => setTemplateItemForm({ ...templateItemForm, minValue: parseFloat(e.target.value) || null })}
+                    value={templateItemForm.minValue || ""}
+                    onChange={(e) =>
+                      setTemplateItemForm({
+                        ...templateItemForm,
+                        minValue: parseFloat(e.target.value) || null,
+                      })
+                    }
                     placeholder="e.g., 0"
                   />
                 </div>
@@ -1794,8 +2166,13 @@ export function DishesView() {
                   <Input
                     id="maxValue"
                     type="number"
-                    value={templateItemForm.maxValue || ''}
-                    onChange={(e) => setTemplateItemForm({ ...templateItemForm, maxValue: parseFloat(e.target.value) || null })}
+                    value={templateItemForm.maxValue || ""}
+                    onChange={(e) =>
+                      setTemplateItemForm({
+                        ...templateItemForm,
+                        maxValue: parseFloat(e.target.value) || null,
+                      })
+                    }
                     placeholder="e.g., 100"
                   />
                 </div>
@@ -1812,9 +2189,16 @@ export function DishesView() {
                   min="0.1"
                   max="10"
                   value={templateItemForm.weight}
-                  onChange={(e) => setTemplateItemForm({ ...templateItemForm, weight: parseFloat(e.target.value) || 1 })}
+                  onChange={(e) =>
+                    setTemplateItemForm({
+                      ...templateItemForm,
+                      weight: parseFloat(e.target.value) || 1,
+                    })
+                  }
                 />
-                <p className="text-xs text-muted-foreground">Higher weight = more impact on score</p>
+                <p className="text-xs text-muted-foreground">
+                  Higher weight = more impact on score
+                </p>
               </div>
 
               <div className="space-y-2 flex items-center pt-6">
@@ -1822,7 +2206,12 @@ export function DishesView() {
                   <input
                     type="checkbox"
                     checked={templateItemForm.isRequired}
-                    onChange={(e) => setTemplateItemForm({ ...templateItemForm, isRequired: e.target.checked })}
+                    onChange={(e) =>
+                      setTemplateItemForm({
+                        ...templateItemForm,
+                        isRequired: e.target.checked,
+                      })
+                    }
                     className="h-4 w-4"
                   />
                   <span className="text-sm">Required criterion</span>
@@ -1831,12 +2220,21 @@ export function DishesView() {
             </div>
 
             <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => setTemplateItemDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setTemplateItemDialogOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button type="submit" disabled={savingChecklist || !templateItemForm.name}>
-                {savingChecklist ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {editingItem ? 'Update' : 'Add'} Criterion
+              <Button
+                type="submit"
+                disabled={savingChecklist || !templateItemForm.name}
+              >
+                {savingChecklist ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                {editingItem ? "Update" : "Add"} Criterion
               </Button>
             </div>
           </form>
@@ -1844,10 +2242,17 @@ export function DishesView() {
       </Dialog>
 
       {/* Add/Edit Template Criterion Dialog */}
-      <Dialog open={templateCriterionDialogOpen} onOpenChange={setTemplateCriterionDialogOpen}>
+      <Dialog
+        open={templateCriterionDialogOpen}
+        onOpenChange={setTemplateCriterionDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingTemplateItemIndex !== null ? 'Edit Criterion' : 'Add New Criterion'}</DialogTitle>
+            <DialogTitle>
+              {editingTemplateItemIndex !== null
+                ? "Edit Criterion"
+                : "Add New Criterion"}
+            </DialogTitle>
             <DialogDescription>
               Define a quality evaluation criterion for this template.
             </DialogDescription>
@@ -1858,7 +2263,12 @@ export function DishesView() {
               <Input
                 id="criterionName"
                 value={templateCriterionForm.name}
-                onChange={(e) => setTemplateCriterionForm({ ...templateCriterionForm, name: e.target.value })}
+                onChange={(e) =>
+                  setTemplateCriterionForm({
+                    ...templateCriterionForm,
+                    name: e.target.value,
+                  })
+                }
                 placeholder="e.g., Presentation, Temperature, Taste"
               />
             </div>
@@ -1868,7 +2278,12 @@ export function DishesView() {
               <Textarea
                 id="criterionDescription"
                 value={templateCriterionForm.description}
-                onChange={(e) => setTemplateCriterionForm({ ...templateCriterionForm, description: e.target.value })}
+                onChange={(e) =>
+                  setTemplateCriterionForm({
+                    ...templateCriterionForm,
+                    description: e.target.value,
+                  })
+                }
                 placeholder="Optional description of this criterion"
                 rows={2}
               />
@@ -1878,29 +2293,45 @@ export function DishesView() {
               <Label htmlFor="criterionType">Evaluation Type *</Label>
               <Select
                 value={templateCriterionForm.type}
-                onValueChange={(v: 'SCORE_1_5' | 'BOOLEAN' | 'NUMERIC' | 'TEXT') => setTemplateCriterionForm({ ...templateCriterionForm, type: v })}
+                onValueChange={(
+                  v: "SCORE_1_5" | "BOOLEAN" | "NUMERIC" | "TEXT",
+                ) =>
+                  setTemplateCriterionForm({
+                    ...templateCriterionForm,
+                    type: v,
+                  })
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="SCORE_1_5">Score (1-5) - Rating scale</SelectItem>
+                  <SelectItem value="SCORE_1_5">
+                    Score (1-5) - Rating scale
+                  </SelectItem>
                   <SelectItem value="BOOLEAN">Yes/No - Pass or fail</SelectItem>
-                  <SelectItem value="NUMERIC">Numeric - Custom range</SelectItem>
+                  <SelectItem value="NUMERIC">
+                    Numeric - Custom range
+                  </SelectItem>
                   <SelectItem value="TEXT">Text - Written feedback</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {templateCriterionForm.type === 'NUMERIC' && (
+            {templateCriterionForm.type === "NUMERIC" && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="criterionMinValue">Minimum Value</Label>
                   <Input
                     id="criterionMinValue"
                     type="number"
-                    value={templateCriterionForm.minValue || ''}
-                    onChange={(e) => setTemplateCriterionForm({ ...templateCriterionForm, minValue: parseFloat(e.target.value) || null })}
+                    value={templateCriterionForm.minValue || ""}
+                    onChange={(e) =>
+                      setTemplateCriterionForm({
+                        ...templateCriterionForm,
+                        minValue: parseFloat(e.target.value) || null,
+                      })
+                    }
                     placeholder="e.g., 0"
                   />
                 </div>
@@ -1909,8 +2340,13 @@ export function DishesView() {
                   <Input
                     id="criterionMaxValue"
                     type="number"
-                    value={templateCriterionForm.maxValue || ''}
-                    onChange={(e) => setTemplateCriterionForm({ ...templateCriterionForm, maxValue: parseFloat(e.target.value) || null })}
+                    value={templateCriterionForm.maxValue || ""}
+                    onChange={(e) =>
+                      setTemplateCriterionForm({
+                        ...templateCriterionForm,
+                        maxValue: parseFloat(e.target.value) || null,
+                      })
+                    }
                     placeholder="e.g., 100"
                   />
                 </div>
@@ -1927,9 +2363,16 @@ export function DishesView() {
                   min="0.1"
                   max="10"
                   value={templateCriterionForm.weight}
-                  onChange={(e) => setTemplateCriterionForm({ ...templateCriterionForm, weight: parseFloat(e.target.value) || 1 })}
+                  onChange={(e) =>
+                    setTemplateCriterionForm({
+                      ...templateCriterionForm,
+                      weight: parseFloat(e.target.value) || 1,
+                    })
+                  }
                 />
-                <p className="text-xs text-muted-foreground">Higher weight = more impact on score</p>
+                <p className="text-xs text-muted-foreground">
+                  Higher weight = more impact on score
+                </p>
               </div>
 
               <div className="space-y-2 flex items-center pt-6">
@@ -1937,7 +2380,12 @@ export function DishesView() {
                   <input
                     type="checkbox"
                     checked={templateCriterionForm.isRequired}
-                    onChange={(e) => setTemplateCriterionForm({ ...templateCriterionForm, isRequired: e.target.checked })}
+                    onChange={(e) =>
+                      setTemplateCriterionForm({
+                        ...templateCriterionForm,
+                        isRequired: e.target.checked,
+                      })
+                    }
                     className="h-4 w-4"
                   />
                   <span className="text-sm">Required criterion</span>
@@ -1946,24 +2394,41 @@ export function DishesView() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="criterionPassingScore">Passing Score (Optional)</Label>
+              <Label htmlFor="criterionPassingScore">
+                Passing Score (Optional)
+              </Label>
               <Input
                 id="criterionPassingScore"
                 type="number"
                 step="0.1"
-                value={templateCriterionForm.passingScore || ''}
-                onChange={(e) => setTemplateCriterionForm({ ...templateCriterionForm, passingScore: parseFloat(e.target.value) || null })}
+                value={templateCriterionForm.passingScore || ""}
+                onChange={(e) =>
+                  setTemplateCriterionForm({
+                    ...templateCriterionForm,
+                    passingScore: parseFloat(e.target.value) || null,
+                  })
+                }
                 placeholder="e.g., 3 for score type, 70 for numeric"
               />
-              <p className="text-xs text-muted-foreground">Minimum score to pass this criterion</p>
+              <p className="text-xs text-muted-foreground">
+                Minimum score to pass this criterion
+              </p>
             </div>
 
             <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => setTemplateCriterionDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setTemplateCriterionDialogOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button type="button" onClick={handleSaveTemplateCriterion} disabled={!templateCriterionForm.name.trim()}>
-                {editingTemplateItemIndex !== null ? 'Update' : 'Add'} Criterion
+              <Button
+                type="button"
+                onClick={handleSaveTemplateCriterion}
+                disabled={!templateCriterionForm.name.trim()}
+              >
+                {editingTemplateItemIndex !== null ? "Update" : "Add"} Criterion
               </Button>
             </div>
           </div>

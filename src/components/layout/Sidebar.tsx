@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { ViewType, UserRole } from '@/components/layout/AppShell';
-import { hasPermission } from '@/store/auth-store';
-import { UserPermissions } from '@/store/permissions-store';
-import { cn } from '@/lib/utils';
+import { ViewType, UserRole } from "@/components/layout/AppShell";
+import { hasPermission } from "@/store/auth-store";
+import { Permissions } from "@/store/permissions-store";
+import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   UtensilsCrossed,
@@ -18,10 +18,15 @@ import {
   ChefHat,
   FolderOpen,
   Shield,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface SidebarProps {
   currentView: ViewType;
@@ -29,7 +34,7 @@ interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
   userRole: UserRole;
-  permissions: UserPermissions | null;
+  permissions: Permissions | null;
 }
 
 interface NavItem {
@@ -41,20 +46,93 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="h-5 w-5" />, minRole: 'AUDITOR', permissionKey: 'canViewDashboard' },
-  { id: 'categories', label: 'Categories', icon: <FolderOpen className="h-5 w-5" />, minRole: 'SUPERVISOR', permissionKey: 'canViewCategories' },
-  { id: 'dishes', label: 'Dishes', icon: <UtensilsCrossed className="h-5 w-5" />, minRole: 'AUDITOR', permissionKey: 'canViewDishes' },
-  { id: 'reports', label: 'Quality Reports', icon: <ClipboardCheck className="h-5 w-5" />, minRole: 'AUDITOR', permissionKey: 'canViewReports' },
-  { id: 'incidents', label: 'Incidents', icon: <AlertTriangle className="h-5 w-5" />, minRole: 'AUDITOR', permissionKey: 'canViewIncidents' },
-  { id: 'alerts', label: 'Alerts', icon: <Bell className="h-5 w-5" />, minRole: 'SUPERVISOR', permissionKey: 'canViewAlerts' },
-  { id: 'users', label: 'Users', icon: <Users className="h-5 w-5" />, minRole: 'COMPANY_ADMIN', permissionKey: 'canViewUsers' },
-  { id: 'branches', label: 'Branches', icon: <Store className="h-5 w-5" />, minRole: 'COMPANY_ADMIN', permissionKey: 'canViewBranches' },
-  { id: 'companies', label: 'Companies', icon: <Building2 className="h-5 w-5" />, minRole: 'SUPER_ADMIN', permissionKey: 'canViewCompanies' },
-  { id: 'permissions', label: 'Permissions', icon: <Shield className="h-5 w-5" />, minRole: 'COMPANY_ADMIN', permissionKey: 'canViewPermissions' },
-  { id: 'audit', label: 'Audit Log', icon: <FileText className="h-5 w-5" />, minRole: 'BRANCH_MANAGER', permissionKey: 'canViewAudit' },
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: <LayoutDashboard className="h-5 w-5" />,
+    minRole: "AUDITOR",
+    permissionKey: "canViewDashboard",
+  },
+  {
+    id: "categories",
+    label: "Categories",
+    icon: <FolderOpen className="h-5 w-5" />,
+    minRole: "SUPERVISOR",
+    permissionKey: "canViewCategories",
+  },
+  {
+    id: "dishes",
+    label: "Dishes",
+    icon: <UtensilsCrossed className="h-5 w-5" />,
+    minRole: "AUDITOR",
+    permissionKey: "canViewDishes",
+  },
+  {
+    id: "reports",
+    label: "Quality Reports",
+    icon: <ClipboardCheck className="h-5 w-5" />,
+    minRole: "AUDITOR",
+    permissionKey: "canViewReports",
+  },
+  {
+    id: "incidents",
+    label: "Incidents",
+    icon: <AlertTriangle className="h-5 w-5" />,
+    minRole: "AUDITOR",
+    permissionKey: "canViewIncidents",
+  },
+  {
+    id: "alerts",
+    label: "Alerts",
+    icon: <Bell className="h-5 w-5" />,
+    minRole: "SUPERVISOR",
+    permissionKey: "canViewAlerts",
+  },
+  {
+    id: "users",
+    label: "Users",
+    icon: <Users className="h-5 w-5" />,
+    minRole: "COMPANY_ADMIN",
+    permissionKey: "canViewUsers",
+  },
+  {
+    id: "branches",
+    label: "Branches",
+    icon: <Store className="h-5 w-5" />,
+    minRole: "COMPANY_ADMIN",
+    permissionKey: "canViewBranches",
+  },
+  {
+    id: "companies",
+    label: "Companies",
+    icon: <Building2 className="h-5 w-5" />,
+    minRole: "SUPER_ADMIN",
+    permissionKey: "canViewCompanies",
+  },
+  {
+    id: "permissions",
+    label: "Permissions",
+    icon: <Shield className="h-5 w-5" />,
+    minRole: "COMPANY_ADMIN",
+    permissionKey: "canViewPermissions",
+  },
+  {
+    id: "audit",
+    label: "Audit Log",
+    icon: <FileText className="h-5 w-5" />,
+    minRole: "BRANCH_MANAGER",
+    permissionKey: "canViewAudit",
+  },
 ];
 
-export function Sidebar({ currentView, onViewChange, isOpen, onToggle, userRole, permissions }: SidebarProps) {
+export function Sidebar({
+  currentView,
+  onViewChange,
+  isOpen,
+  onToggle,
+  userRole,
+  permissions,
+}: SidebarProps) {
   const canAccessItem = (item: NavItem): boolean => {
     // First check role hierarchy
     if (!hasPermission(userRole, item.minRole)) {
@@ -63,7 +141,9 @@ export function Sidebar({ currentView, onViewChange, isOpen, onToggle, userRole,
 
     // Then check specific permission if defined
     if (item.permissionKey && permissions) {
-      return permissions[item.permissionKey as keyof typeof permissions] === true;
+      return (
+        permissions[item.permissionKey as keyof typeof permissions] === true
+      );
     }
 
     return true;
@@ -75,8 +155,8 @@ export function Sidebar({ currentView, onViewChange, isOpen, onToggle, userRole,
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          'border-r bg-card transition-all duration-300 flex flex-col',
-          isOpen ? 'w-64' : 'w-16'
+          "border-r bg-card transition-all duration-300 flex flex-col",
+          isOpen ? "w-64" : "w-16",
         )}
       >
         {/* Logo */}
@@ -92,8 +172,18 @@ export function Sidebar({ currentView, onViewChange, isOpen, onToggle, userRole,
               </div>
             )}
           </div>
-          <Button variant="ghost" size="icon" onClick={onToggle} className="h-8 w-8">
-            <ChevronLeft className={cn('h-4 w-4 transition-transform', !isOpen && 'rotate-180')} />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggle}
+            className="h-8 w-8"
+          >
+            <ChevronLeft
+              className={cn(
+                "h-4 w-4 transition-transform",
+                !isOpen && "rotate-180",
+              )}
+            />
           </Button>
         </div>
 
@@ -104,10 +194,10 @@ export function Sidebar({ currentView, onViewChange, isOpen, onToggle, userRole,
               <Tooltip key={item.id}>
                 <TooltipTrigger asChild>
                   <Button
-                    variant={currentView === item.id ? 'secondary' : 'ghost'}
+                    variant={currentView === item.id ? "secondary" : "ghost"}
                     className={cn(
-                      'w-full justify-start gap-3',
-                      !isOpen && 'justify-center px-2'
+                      "w-full justify-start gap-3",
+                      !isOpen && "justify-center px-2",
                     )}
                     onClick={() => onViewChange(item.id)}
                   >
@@ -116,9 +206,7 @@ export function Sidebar({ currentView, onViewChange, isOpen, onToggle, userRole,
                   </Button>
                 </TooltipTrigger>
                 {!isOpen && (
-                  <TooltipContent side="right">
-                    {item.label}
-                  </TooltipContent>
+                  <TooltipContent side="right">{item.label}</TooltipContent>
                 )}
               </Tooltip>
             ))}

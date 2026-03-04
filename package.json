@@ -1,15 +1,22 @@
 {
   "name": "kqs-kitchen-quality-system",
-  "version": "1.0.0",
+  "version": "1.0.10",
   "private": true,
   "description": "Kitchen Quality System - A comprehensive web application for managing quality control in commercial kitchens",
-  "keywords": ["kitchen", "quality", "management", "restaurant", "food-safety", "quality-control"],
+  "keywords": [
+    "kitchen",
+    "quality",
+    "management",
+    "restaurant",
+    "food-safety",
+    "quality-control"
+  ],
   "author": "",
   "license": "MIT",
   "scripts": {
-    "dev": "next dev -p 3000 2>&1 | tee dev.log",
-    "build": "next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
-    "start": "NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "bun .next/standalone/server.js",
     "lint": "eslint .",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",

@@ -154,7 +154,7 @@ export function IncidentsView() {
 
   const loadDishes = async () => {
     try {
-      const result = await dishesApi.list({ companyId: user?.companyId, limit: 100 });
+      const result = await dishesApi.list({ companyId: user?.companyId || undefined, limit: 100 });
       if (result.success && result.data) {
         setDishes(result.data);
       }
