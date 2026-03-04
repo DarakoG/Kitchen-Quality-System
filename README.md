@@ -105,7 +105,7 @@ Dashboards personalizados según el rol del usuario:
 | [Next.js](https://nextjs.org/) | 16 | Framework React SSR |
 | [TypeScript](https://www.typescriptlang.org/) | 5 | Tipado estático |
 | [Prisma](https://www.prisma.io/) | 6 | ORM y migraciones |
-| [SQLite](https://www.sqlite.org/) | - | Base de datos |
+| [SQLite](https://www.sqlite.org/) / [PostgreSQL](https://www.postgresql.org/) | - | Base de datos |
 | [Tailwind CSS](https://tailwindcss.com/) | 4 | Estilos utilitarios |
 | [shadcn/ui](https://ui.shadcn.com/) | - | Componentes UI |
 | [Zustand](https://zustand-demo.pmnd.rs/) | 5 | Estado global |
@@ -119,36 +119,40 @@ Dashboards personalizados según el rol del usuario:
 ```
 kqs-kitchen-quality-system/
 ├── 📁 prisma/
-│   ├── schema.prisma       # Esquema de base de datos
-│   └── seed.ts             # Datos de demostración
+│   ├── schema.prisma              # Esquema SQLite (desarrollo)
+│   ├── schema.postgresql.prisma   # Esquema PostgreSQL (producción)
+│   └── seed.ts                    # Datos de demostración
 ├── 📁 src/
 │   ├── 📁 app/
-│   │   ├── 📁 api/         # API Routes (REST)
-│   │   │   ├── auth/       # Autenticación
-│   │   │   ├── companies/  # Empresas
-│   │   │   ├── branches/   # Sucursales
-│   │   │   ├── users/      # Usuarios
-│   │   │   ├── dishes/     # Platos
-│   │   │   ├── categories/ # Categorías
-│   │   │   ├── checklists/ # Criterios de calidad
-│   │   │   ├── incidents/  # Incidencias
-│   │   │   ├── alerts/     # Alertas
-│   │   │   ├── dashboard/  # KPIs por rol
-│   │   │   └── audit/      # Logs de auditoría
-│   │   ├── layout.tsx
-│   │   └── page.tsx
+│   │   ├── 📁 api/                # API Routes (REST)
+│   │   │   ├── auth/              # Autenticación
+│   │   │   ├── companies/          # Empresas
+│   │   │   ├── branches/           # Sucursales
+│   │   │   ├── users/              # Usuarios
+│   │   │   ├── dishes/             # Platos
+│   │   │   ├── categories/         # Categorías
+│   │   │   ├── checklists/         # Criterios de calidad
+│   │   │   ├── incidents/          # Incidencias
+│   │   │   ├── alerts/             # Alertas
+│   │   │   ├── dashboard/          # KPIs por rol
+│   │   │   └── audit/              # Logs de auditoría
+│   │   ├── layout.tsx              # Layout principal
+│   │   └── page.tsx                # Página principal
 │   ├── 📁 components/
-│   │   ├── dashboards/     # Dashboards por rol
-│   │   ├── layout/         # Layout principal
-│   │   ├── views/          # Vistas de la app
-│   │   └── ui/             # Componentes shadcn/ui
+│   │   ├── 📁 dashboards/          # Dashboards por rol
+│   │   ├── 📁 layout/              # Layout principal
+│   │   ├── 📁 views/               # Vistas de la app
+│   │   └── 📁 ui/                  # Componentes shadcn/ui
 │   ├── 📁 lib/
-│   │   ├── api.ts          # Cliente API
-│   │   ├── auth.ts         # Utilidades auth
-│   │   ├── db.ts           # Cliente Prisma
-│   │   └── audit.ts        # Sistema auditoría
-│   ├── 📁 store/           # Estado global (Zustand)
-│   └── 📁 types/           # Tipos TypeScript
+│   │   ├── api.ts                  # Cliente API
+│   │   ├── auth.ts                 # Utilidades auth
+│   │   ├── db.ts                   # Cliente Prisma
+│   │   └── audit.ts                # Sistema auditoría
+│   ├── 📁 store/                   # Estado global (Zustand)
+│   └── 📁 types/                   # Tipos TypeScript
+├── .env.example                    # Variables de entorno (template)
+├── DEPLOYMENT.md                   # Guía de despliegue
+├── vercel.json                     # Configuración Vercel
 ├── package.json
 ├── tailwind.config.ts
 └── tsconfig.json
@@ -201,6 +205,33 @@ kqs-kitchen-quality-system/
 6. **Abrir en el navegador**
    ```
    http://localhost:3000
+   ```
+
+### Configuración para Producción
+
+Para desplegar en producción, necesitas cambiar a PostgreSQL:
+
+1. **Configurar variables de entorno**:
+   ```bash
+   cp .env.example .env
+   # Edita .env con tus valores de producción
+   ```
+
+2. **Cambiar a PostgreSQL**:
+   ```bash
+   cd prisma
+   mv schema.prisma schema.sqlite.prisma
+   mv schema.postgresql.prisma schema.prisma
+   bunx prisma generate
+   ```
+
+3. **Configurar DATABASE_URL**:
+   ```env
+   # Para Neon
+   DATABASE_URL="postgresql://user:pass@ep-xxx.neon.tech/kqs?sslmode=require"
+   
+   # Para Supabase
+   DATABASE_URL="postgresql://postgres:[PASSWORD]@db.xxx.supabase.co:5432/postgres"
    ```
 
 ---
@@ -318,6 +349,45 @@ erDiagram
 | Gestionar Incidencias | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Ver Auditoría | ✅ | ✅ | ✅ | ❌ | ✅ |
 | Gestionar Permisos | ✅ | ✅ | ❌ | ❌ | ❌ |
+
+---
+
+## ☁️ Despliegue en Producción
+
+### Plataformas Recomendadas
+
+| Plataforma | Plan Gratuito | Base de Datos | Dificultad |
+|------------|---------------|---------------|------------|
+| [Vercel](https://vercel.com) | 100GB/mes | PostgreSQL externo | ⭐ Fácil |
+| [Railway](https://railway.app) | $5 crédito/mes | SQLite o PostgreSQL | ⭐ Fácil |
+| [Render](https://render.com) | 750 horas/mes | PostgreSQL incluido | ⭐⭐ Medio |
+| [Fly.io](https://fly.io) | 3 VMs pequeñas | SQLite con volumen | ⭐⭐⭐ Avanzado |
+
+### Despliegue Rápido en Vercel
+
+1. **Crear base de datos PostgreSQL gratuita** en [Neon](https://neon.tech) o [Supabase](https://supabase.com)
+
+2. **Cambiar a PostgreSQL** en tu repositorio:
+   ```bash
+   # Renombrar schema para PostgreSQL
+   cd prisma
+   mv schema.prisma schema.sqlite.prisma
+   mv schema.postgresql.prisma schema.prisma
+   git add . && git commit -m "Switch to PostgreSQL" && git push
+   ```
+
+3. **Desplegar en Vercel**:
+   - Ve a [vercel.com](https://vercel.com) y conéctate con GitHub
+   - Importa tu repositorio
+   - Configura las variables de entorno:
+     - `DATABASE_URL` = Tu conexión PostgreSQL
+     - `NEXTAUTH_SECRET` = Genera con `openssl rand -base64 32`
+     - `NEXTAUTH_URL` = Tu dominio (ej: `https://kqs.vercel.app`)
+
+4. **Inicializar base de datos**:
+   - Visita `https://tu-app.vercel.app/api/seed` para crear datos iniciales
+
+📖 **Guía detallada**: Ver [DEPLOYMENT.md](./DEPLOYMENT.md) para instrucciones completas de todas las plataformas.
 
 ---
 
