@@ -1,0 +1,488 @@
+// Kitchen Quality System (KQS) - Prisma Schema
+// Multi-tenant SaaS application for restaurant quality control
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum UserRole {
+  SUPER_ADMIN
+  COMPANY_ADMIN
+  BRANCH_MANAGER
+  SUPERVISOR
+  AUDITOR
+}
+
+enum Shift {
+  BREAKFAST
+  LUNCH
+  DINNER
+  NIGHT
+  ALL_DAY
+}
+
+enum QualityStatus {
+  APPROVED
+  REJECTED
+  PENDING_REVIEW
+}
+
+enum IncidentStatus {
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum AlertStatus {
+  ACTIVE
+  CLOSED
+}
+
+enum AlertType {
+  REPEATED_FAILURES
+  EXCESSIVE_TIME
+  LOW_SCORE
+  CRITICAL_INCIDENT
+}
+
+enum CriterionType {
+  SCORE_1_5
+  BOOLEAN
+  NUMERIC
+  TEXT
+}
+
+// ============================================
+// CORE ENTITIES
+// ============================================
+
+/// Company - Multi-tenant organization
+model Company {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  logo        String?
+  email       String?
+  phone       String?
+  address     String?
+  city        String?
+  country     String?
+  isActive    Boolean  @default(true)
+  plan        String   @default("basic") // basic, professional, enterprise
+  maxBranches Int      @default(5)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  branches  Branch[]
+  users     User[]
+  dishes    Dish[]
+  categories Category[]
+  checklistTemplates ChecklistTemplate[]
+
+  @@index([slug])
+}
+
+/// Branch - Physical location/restaurant
+model Branch {
+  id        String   @id @default(cuid())
+  companyId String
+  name      String
+  code      String   // Short code for branch identification
+  email     String?
+  phone     String?
+  address   String?
+  city      String?
+  isActive  Boolean  @default(true)
+  opensAt   String?  // Opening time (HH:mm)
+  closesAt  String?  // Closing time (HH:mm)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  users           User[]
+  userBranches    UserBranch[]     // Users with access to this branch
+  qualityReports  QualityReport[]
+  incidents       Incident[]
+  alerts          Alert[]
+  auditLogs       AuditLog[]
+
+  @@unique([companyId, code])
+  @@index([companyId])
+}
+
+/// User - System users with role-based access
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  password   String   // Hashed password
+  name       String
+  avatar     String?
+  role       UserRole @default(SUPERVISOR)
+  phone      String?
+  isActive   Boolean  @default(true)
+  companyId  String?  // Null for SUPER_ADMIN
+  branchId   String?  // Primary branch (for backward compatibility)
+  lastLogin  DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  company        Company?        @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  branch         Branch?         @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  userBranches   UserBranch[]    // Multiple branches access
+  qualityReports QualityReport[]
+  incidents      Incident[]
+  auditLogs      AuditLog[]
+  acknowledgedAlerts Alert[]      @relation("AcknowledgedAlerts")
+
+  @@index([email])
+  @@index([companyId])
+  @@index([branchId])
+}
+
+/// UserBranch - Many-to-many relationship between users and branches
+model UserBranch {
+  id        String   @id @default(cuid())
+  userId    String
+  branchId  String
+  createdAt DateTime @default(now())
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, branchId])
+  @@index([userId])
+  @@index([branchId])
+}
+
+// ============================================
+// PRODUCT MANAGEMENT
+// ============================================
+
+/// Category - Dish categories
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  color       String   @default("#6B7280") // Hex color for UI
+  icon        String?  // Icon name
+  companyId   String
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  dishes  Dish[]
+
+  @@index([companyId])
+}
+
+/// Dish - Menu item/product
+model Dish {
+  id          String   @id @default(cuid())
+  companyId   String
+  categoryId  String?
+  name        String
+  description String?
+  image       String?  // URL to dish image
+  sku         String?  // Internal identifier
+  prepTime    Int?     // Expected preparation time in minutes
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  company  Company?       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  category Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  checklistItems QualityChecklistItem[]
+  qualityReports QualityReport[]
+  incidents      Incident[]
+
+  @@index([companyId])
+  @@index([categoryId])
+}
+
+/// QualityChecklistItem - Configurable quality criteria per dish
+model QualityChecklistItem {
+  id            String        @id @default(cuid())
+  dishId        String
+  name          String        // Criterion name
+  description   String?       // Detailed description
+  type          CriterionType @default(SCORE_1_5)
+  isRequired    Boolean       @default(true)
+  weight        Float         @default(1.0) // Weight for score calculation
+  minValue      Float?        // For NUMERIC type
+  maxValue      Float?        // For NUMERIC type
+  passingScore  Float?        // Minimum passing value
+  sortOrder     Int           @default(0)
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  dish                Dish                   @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  qualityReportItems  QualityReportItem[]
+
+  @@index([dishId])
+}
+
+/// ChecklistTemplate - Reusable quality criteria template
+model ChecklistTemplate {
+  id          String   @id @default(cuid())
+  companyId   String
+  name        String   // Template name (e.g., "General", "Beverages", "Desserts")
+  description String?
+  isDefault   Boolean  @default(false) // Default template for new dishes
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  company Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  items   ChecklistTemplateItem[]
+
+  @@index([companyId])
+}
+
+/// ChecklistTemplateItem - Items within a template
+model ChecklistTemplateItem {
+  id           String        @id @default(cuid())
+  templateId   String
+  name         String
+  description  String?
+  type         CriterionType @default(SCORE_1_5)
+  isRequired   Boolean       @default(true)
+  weight       Float         @default(1.0)
+  minValue     Float?
+  maxValue     Float?
+  passingScore Float?
+  sortOrder    Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Relations
+  template ChecklistTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+}
+
+// ============================================
+// QUALITY CONTROL
+// ============================================
+
+/// QualityReport - Quality evaluation record
+model QualityReport {
+  id              String        @id @default(cuid())
+  branchId        String
+  dishId          String
+  userId          String        // Evaluator
+  shift           Shift         @default(LUNCH)
+  evaluationDate  DateTime      @default(now())
+  status          QualityStatus @default(APPROVED)
+  overallScore    Float?        // Calculated overall score (0-100)
+  exitTime        Int?          // Time from order to exit (minutes)
+  photoUrl        String?       // Photo of the dish
+  notes           String?       // General observations
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  branch Branch              @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  dish   Dish                @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  user   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items  QualityReportItem[]
+
+  @@index([branchId])
+  @@index([dishId])
+  @@index([userId])
+  @@index([evaluationDate])
+  @@index([status])
+}
+
+/// QualityReportItem - Individual criterion response
+model QualityReportItem {
+  id               String  @id @default(cuid())
+  reportId         String
+  checklistItemId  String
+  scoreValue       Float?  // For SCORE_1_5 or NUMERIC
+  booleanValue     Boolean?
+  textValue        String?
+  isPassed         Boolean @default(true)
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  report         QualityReport       @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  checklistItem  QualityChecklistItem @relation(fields: [checklistItemId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+  @@index([checklistItemId])
+}
+
+// ============================================
+// INCIDENT MANAGEMENT
+// ============================================
+
+/// Incident - Quality issue record
+model Incident {
+  id               String          @id @default(cuid())
+  branchId         String
+  dishId           String?
+  qualityReportId  String?         // Linked quality report
+  userId           String          // Responsible user
+  incidentType     String          // e.g., "Undercooked", "Wrong presentation", "Temperature issue"
+  description      String
+  severity         String          @default("medium") // low, medium, high, critical
+  status           IncidentStatus  @default(PENDING)
+  correctiveAction String?
+  resolvedAt       DateTime?
+  resolvedBy       String?         // User ID who resolved
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  // Relations
+  branch Branch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  dish   Dish?         @relation(fields: [dishId], references: [id], onDelete: SetNull)
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([branchId])
+  @@index([dishId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ============================================
+// ALERTS & NOTIFICATIONS
+// ============================================
+
+/// Alert - Automatic quality alerts
+model Alert {
+  id             String      @id @default(cuid())
+  branchId       String
+  alertType      AlertType
+  title          String
+  message        String
+  status         AlertStatus @default(ACTIVE)
+  threshold      Float?      // Threshold that triggered alert
+  currentValue   Float?      // Current value that exceeded threshold
+  relatedIds     String?     // JSON array of related entity IDs
+  acknowledgedBy String?     // User ID who acknowledged
+  acknowledgedAt DateTime?
+  closedAt       DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  // Relations
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  acknowledgedByUser User? @relation("AcknowledgedAlerts", fields: [acknowledgedBy], references: [id], onDelete: SetNull)
+
+  @@index([branchId])
+  @@index([alertType])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ============================================
+// AUDIT TRAIL
+// ============================================
+
+/// AuditLog - System change history
+model AuditLog {
+  id         String   @id @default(cuid())
+  companyId  String?
+  branchId   String?
+  userId     String?
+  action     String   // CREATE, UPDATE, DELETE, LOGIN, etc.
+  entityType String   // Model name: User, Dish, QualityReport, etc.
+  entityId   String?  // ID of affected entity
+  oldValues  String?  // JSON of previous values
+  newValues  String?  // JSON of new values
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  // Relations
+  branch Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([branchId])
+  @@index([userId])
+  @@index([entityType])
+  @@index([createdAt])
+}
+
+// ============================================
+// PERMISSIONS
+// ============================================
+
+/// Permission - Configurable permissions per role
+model Permission {
+  id           String   @id @default(cuid())
+  role         UserRole
+  companyId    String   // Use "global" for global permissions, otherwise company ID
+  
+  // Module permissions
+  canViewDashboard    Boolean @default(true)
+  canViewDishes       Boolean @default(true)
+  canManageDishes     Boolean @default(false)
+  canViewCategories   Boolean @default(true)
+  canManageCategories Boolean @default(false)
+  canViewReports      Boolean @default(true)
+  canCreateReports    Boolean @default(false)
+  canViewIncidents    Boolean @default(true)
+  canCreateIncidents  Boolean @default(true)
+  canManageIncidents  Boolean @default(false)
+  canViewAlerts       Boolean @default(true)
+  canManageAlerts     Boolean @default(false)
+  canViewUsers        Boolean @default(false)
+  canManageUsers      Boolean @default(false)
+  canViewCompanies    Boolean @default(false)
+  canManageCompanies  Boolean @default(false)
+  canViewBranches     Boolean @default(true)
+  canManageBranches   Boolean @default(false)
+  canViewAudit        Boolean @default(false)
+  canViewSettings     Boolean @default(false)
+  canManageSettings   Boolean @default(false)
+  canViewPermissions  Boolean @default(true)  // Can view/manage role permissions
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([role, companyId])
+  @@index([role])
+  @@index([companyId])
+}
+
+// ============================================
+// SYSTEM SETTINGS
+// ============================================
+
+/// Setting - Application settings
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   // JSON value
+  category  String   @default("general") // general, quality, alerts, notifications
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+  @@index([category])
+}
