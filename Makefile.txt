@@ -1,0 +1,77 @@
+# Kitchen Quality System - Makefile
+# Convenient commands for Docker operations
+
+.PHONY: help build up down logs shell clean restart backup
+
+# Default target
+help:
+	@echo "Kitchen Quality System - Docker Commands"
+	@echo ""
+	@echo "Usage: make [command]"
+	@echo ""
+	@echo "Commands:"
+	@echo "  build    Build Docker images"
+	@echo "  up       Start containers in background"
+	@echo "  down     Stop and remove containers"
+	@echo "  logs     View container logs"
+	@echo "  shell    Open shell in container"
+	@echo "  clean    Remove all containers, volumes, and images"
+	@echo "  restart  Restart containers"
+	@echo "  backup   Create manual database backup"
+	@echo ""
+
+# Build Docker images
+build:
+	@echo "Building Docker images..."
+	docker-compose build
+
+# Start containers
+up:
+	@echo "Starting containers..."
+	docker-compose up -d
+	@echo "Application running at http://localhost:3000"
+
+# Stop containers
+down:
+	@echo "Stopping containers..."
+	docker-compose down
+
+# View logs
+logs:
+	docker-compose logs -f kqs-app
+
+# Open shell in container
+shell:
+	docker-compose exec kqs-app /bin/sh
+
+# Clean everything
+clean:
+	@echo "Removing containers, volumes, and images..."
+	docker-compose down -v --rmi all
+	rm -rf backups/*.db 2>/dev/null || true
+
+# Restart containers
+restart:
+	@echo "Restarting containers..."
+	docker-compose restart
+
+# Create backup
+backup:
+	@echo "Creating backup..."
+	mkdir -p backups
+	docker-compose exec kqs-app cp /app/data/kqs.db /backups/kqs_backup_$$(date +%Y%m%d_%H%M%S).db 2>/dev/null || \
+	cp data/kqs.db backups/kqs_backup_$$(date +%Y%m%d_%H%M%S).db 2>/dev/null || \
+	echo "Could not create backup. Is the container running?"
+	@echo "Backup created in ./backups/"
+
+# Development mode (without Docker)
+dev:
+	bun run dev
+
+# Production build (without Docker)
+prod-build:
+	bun run build
+
+# Production start (without Docker)
+prod-start:
+	bun run start

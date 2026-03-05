@@ -1,5 +1,27 @@
 // Re-export Prisma types
-export * from '@prisma/client';
+export * from "@prisma/client";
+
+// Import Prisma types for use in this file
+import type {
+  UserRole,
+  CriterionType,
+  Shift,
+  QualityStatus,
+  IncidentStatus,
+  AlertType,
+  AlertStatus,
+} from "@prisma/client";
+
+// Re-export for convenience
+export type {
+  UserRole,
+  CriterionType,
+  Shift,
+  QualityStatus,
+  IncidentStatus,
+  AlertType,
+  AlertStatus,
+};
 
 // API Types
 export interface Company {
@@ -197,7 +219,11 @@ export interface DashboardKPIs {
   pendingIncidents: number;
   activeAlerts: number;
   topDishes: { dishId: string; dishName: string; count: number }[];
-  branchPerformance: { branchId: string; branchName: string; approvalRate: number }[];
+  branchPerformance: {
+    branchId: string;
+    branchName: string;
+    approvalRate: number;
+  }[];
   dailyTrend: { date: string; reports: number; approvalRate: number }[];
   recentReports: QualityReport[];
   recentIncidents: Incident[];
