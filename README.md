@@ -460,7 +460,7 @@ Stack completo en una sola tabla — sin inflar con marketing:
 Este proyecto está bajo la **Licencia MIT**. Ver el archivo [LICENSE](LICENSE) para más detalles.
 
 ```
-MIT License — Copyright (c) 2024 DarakoG
+MIT License — Copyright (c) 2026 DarakoG
 ```
 
 ---
