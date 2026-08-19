@@ -479,7 +479,7 @@ Si este proyecto te sirvió, una estrella en GitHub ayuda mucho:
 
 <div align="center">
 
-**Hecho con ❤️ para la industria de restaurantes · desde Argentina** 🇦🇷
+**Hecho con ❤️ para la industria de restaurantes · desde República Dominicana** 🇩🇴
 
 [⬆ Volver arriba](#-kitchen-quality-system-kqs)
 
