@@ -74,6 +74,9 @@ mini-services/
 # Scripts (internal)
 .zscripts/
 
+# Release artifacts (generated locally, not tracked)
+RELEASE_NOTES_*.md
+
 # Prompt files
 prompt/
 test/
