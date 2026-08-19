@@ -10,7 +10,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS%204-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-[Demo](#-demo) • [Características](#-características) • [Instalación](#-instalación) • [Stack](#-stack) • [Autor](#-autor)
+[Demo](#-demo) • [Características](#-características) • [Instalación](#-instalación) • [Stack](#-stack) • [Versiones](#-versiones) • [Autor](#-autor)
 
 </div>
 
@@ -426,6 +426,27 @@ Stack completo en una sola tabla — sin inflar con marketing:
 | Gráficos | [Recharts 2](https://recharts.org/) | Dashboards interactivos |
 | i18n | [next-intl](https://next-intl-docs.vercel.app/) | Preparado para multi-idioma |
 | Contenedores | [Docker](https://www.docker.com/) + [Caddy](https://caddyserver.com/) | Imagen multi-stage, healthcheck incluido |
+
+---
+
+## 📋 Versiones
+
+Este proyecto sigue [Semantic Versioning](https://semver.org/lang/es/) (`MAJOR.MINOR.PATCH`).
+El historial completo con cada cambio vive en **[CHANGELOG.md](./CHANGELOG.md)**.
+
+| Versión | Fecha | Tipo | Highlights |
+|---------|-------|------|------------|
+| [1.0.0](https://github.com/DarakoG/Kitchen-Quality-System/releases/tag/v1.0.0) | 2026-08-19 | 🎉 Release | Primera versión pública open source |
+| [Unreleased](https://github.com/DarakoG/Kitchen-Quality-System/blob/main/CHANGELOG.md#unreleased) | — | En desarrollo | Tests, CI/CD, i18n completo, 2FA |
+
+### Convenciones
+
+- **MAJOR** (`X.0.0`): cambios incompatibles en API o schema. Requiere migration manual.
+- **MINOR** (`0.X.0`): nueva funcionalidad compatible hacia atrás.
+- **PATCH** (`0.0.X`): bugfixes y mejoras menores compatibles.
+
+Para contribuir con un cambio, actualizá `CHANGELOG.md` en la sección `[Unreleased]`
+siguiendo las categorías `Added` / `Changed` / `Fixed` / `Removed` / `Security`.
 
 ---
 
