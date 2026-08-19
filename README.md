@@ -10,7 +10,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS%204-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-[Demo](#-demo) • [Características](#-características) • [Instalación](#-instalación) • [Documentación](#-documentación)
+[Demo](#-demo) • [Características](#-características) • [Instalación](#-instalación) • [Stack](#-stack) • [Autor](#-autor)
 
 </div>
 
@@ -171,8 +171,8 @@ kqs-kitchen-quality-system/
 
 1. **Clonar el repositorio**
    ```bash
-   git clone https://github.com/tu-usuario/kqs-kitchen-quality-system.git
-   cd kqs-kitchen-quality-system
+   git clone https://github.com/DarakoG/Kitchen-Quality-System.git
+   cd Kitchen-Quality-System
    ```
 
 2. **Instalar dependencias**
@@ -408,24 +408,78 @@ Las contribuciones son bienvenidas. Por favor:
 
 ---
 
-## 📄 Licencia
+## 🧱 Stack
 
-Este proyecto está bajo la Licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
+Stack completo en una sola tabla — sin inflar con marketing:
+
+| Capa | Tecnología | Notas |
+|------|-----------|-------|
+| Framework | [Next.js 16](https://nextjs.org/) | App Router + Server Actions |
+| Lenguaje | [TypeScript 5](https://www.typescriptlang.org/) | Tipado estático estricto |
+| ORM | [Prisma 6](https://www.prisma.io/) | Schema dual: SQLite (dev) / PostgreSQL (prod) |
+| UI | [shadcn/ui](https://ui.shadcn.com/) + [Tailwind 4](https://tailwindcss.com/) | Componentes accesibles, sin vendor lock-in |
+| Estado global | [Zustand 5](https://zustand-demo.pmnd.rs/) | Stores pequeñas, sin boilerplate |
+| Formularios | [react-hook-form](https://react-hook-form.com/) + [Zod 4](https://zod.dev/) | Validación tipada extremo a extremo |
+| Auth | [bcrypt](https://www.npmjs.com/package/bcrypt) + cookies httpOnly | Sesión propia, sin NextAuth lock-in |
+| Tablas | [TanStack Table](https://tanstack.com/table) + [TanStack Query](https://tanstack.com/query) | Server state cacheado |
+| Drag & drop | [@dnd-kit](https://dndkit.com/) | Reordenamiento de checklists |
+| Gráficos | [Recharts 2](https://recharts.org/) | Dashboards interactivos |
+| i18n | [next-intl](https://next-intl-docs.vercel.app/) | Preparado para multi-idioma |
+| Contenedores | [Docker](https://www.docker.com/) + [Caddy](https://caddyserver.com/) | Imagen multi-stage, healthcheck incluido |
 
 ---
 
-## 📞 Soporte
+## 📸 Capturas
 
-¿Tienes preguntas o problemas?
+> �️ Las capturas se sumarán en breve. Mientras tanto, podés ver la UI corriendo localmente siguiendo [Instalación](#-instalación).
 
-- 📧 Email: soporte@kqs.com
-- 🐛 Issues: [GitHub Issues](https://github.com/tu-usuario/kqs-kitchen-quality-system/issues)
+---
+
+## 👤 Autor
+
+<div align="left">
+
+**DarakoG** — Full Stack Developer
+
+- 🐙 GitHub: [@DarakoG](https://github.com/DarakoG)
+- 📧 Email: [garciadariel37@gmail.com](mailto:garciadariel37@gmail.com)
+- 📦 Repo: [DarakoG/Kitchen-Quality-System](https://github.com/DarakoG/Kitchen-Quality-System)
+
+</div>
+
+¿Encontraste un bug, tenés una idea o querés charlar sobre el proyecto?
+
+- 🐛 [Abrí un issue](https://github.com/DarakoG/Kitchen-Quality-System/issues)
+- 💬 [Iniciá una discussion](https://github.com/DarakoG/Kitchen-Quality-System/discussions)
+- ✉️ O escribime directo por email
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la **Licencia MIT**. Ver el archivo [LICENSE](LICENSE) para más detalles.
+
+```
+MIT License — Copyright (c) 2024 DarakoG
+```
+
+---
+
+## ⭐ Mostrá tu apoyo
+
+Si este proyecto te sirvió, una estrella en GitHub ayuda mucho:
+
+<div align="center">
+
+[![Star on GitHub](https://img.shields.io/github/stars/DarakoG/Kitchen-Quality-System?style=social)](https://github.com/DarakoG/Kitchen-Quality-System)
+
+</div>
 
 ---
 
 <div align="center">
 
-**Hecho con ❤️ para la industria de restaurantes**
+**Hecho con ❤️ para la industria de restaurantes · desde Argentina** 🇦🇷
 
 [⬆ Volver arriba](#-kitchen-quality-system-kqs)
 
