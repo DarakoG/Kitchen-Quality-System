@@ -1,7 +1,7 @@
 {
   "name": "kqs-kitchen-quality-system",
   "version": "1.0.10",
-  "private": true,
+  "private": false,
   "description": "Kitchen Quality System - A comprehensive web application for managing quality control in commercial kitchens",
   "keywords": [
     "kitchen",
@@ -11,7 +11,7 @@
     "food-safety",
     "quality-control"
   ],
-  "author": "",
+  "author": "DarakoG",
   "license": "MIT",
   "scripts": {
     "dev": "next dev -p 3000",
